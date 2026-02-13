@@ -1,0 +1,2079 @@
+﻿/* Layout Grid Configuration */
+
+        /* 1. Pastikan Container Grid memanjang penuh */
+        .calendar-grid-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 2. Setting Dasar Grid */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            height: 100%;
+            /* Wajib full height */
+            width: 100%;
+            gap: 4px;
+            /* Gap antar kotak */
+        }
+
+        /* Desktop Layout Configuration */
+        @media (min-width: 1024px) {
+
+            /* 1. Pastikan Main Content jadi Kolom Flex yang Strict */
+            .main-content {
+                display: flex !important;
+                flex-direction: column !important;
+                height: 100% !important;
+                overflow: hidden !important;
+                /* KUNCI: Jangan biarkan scroll body */
+                padding: 1.5rem 2rem 1rem 2rem !important;
+                /* Padding bawah dikurangi dikit */
+            }
+
+            /* 2. Header Kontrol jangan diubah, tapi pastikan dia tidak flex-grow */
+            .desktop-header-controls {
+                flex-shrink: 0;
+                /* Jangan mengecil */
+            }
+
+            /* 3. Container View Kalender Wajib ambil sisa ruang */
+            #calendarViewContainer {
+                flex: 1;
+                /* Ambil semua sisa ruang */
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+                /* KUNCI: Agar anak di dalamnya mau mengecil */
+                overflow: hidden;
+            }
+
+            /* 4. Wrapper Mobile yang dipakai di Desktop */
+            .calendar-section-mobile {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                min-height: 0;
+                /* KUNCI LAGI */
+                padding: 0 !important;
+            }
+
+            /* 5. Kartu Kalender */
+            .calendar-card {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                background: transparent;
+                box-shadow: none;
+                padding: 0;
+                min-height: 0;
+                /* WAJIB ADA */
+            }
+
+            /* 6. Container Grid */
+            .calendar-grid-container {
+                flex: 1;
+                height: 100%;
+                min-height: 0;
+                /* WAJIB ADA */
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* 7. Grid Itu Sendiri */
+            .calendar-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                height: 100%;
+                width: 100%;
+                /* Gap default */
+                gap: 4px 6px;
+                /* Gap vertikal 4px, horizontal 6px */
+            }
+
+            /* --- MODE 5 BARIS (Normal) --- */
+            .calendar-grid.rows-5 {
+                /* Header 30px, sisanya bagi 5 rata */
+                grid-template-rows: 30px repeat(5, minmax(0, 1fr));
+            }
+
+            /* --- MODE 6 BARIS (Padat: Mei/Agustus 2026) --- */
+            .calendar-grid.rows-6 {
+                /* Header diperkecil jadi 24px agar hemat tempat */
+                grid-template-rows: 24px repeat(6, minmax(0, 1fr));
+
+                /* Gap vertikal dirapatkan jadi 1px */
+                gap: 1px 6px;
+            }
+
+            /* Penyesuaian Font di Mode 6 Baris agar muat */
+            .calendar-grid.rows-6 .day-label {
+                font-size: 0.65rem;
+                align-self: end;
+                /* Teks header nempel bawah */
+                padding-bottom: 2px;
+            }
+
+            .calendar-grid.rows-6 .day-cell {
+                padding-top: 2px;
+                /* Padding dalam kotak dikurangi */
+            }
+        }
+
+        /* In-Cell Agenda Styles */
+        .in-cell-agenda {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            margin-top: 2px;
+            padding-top: 2px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            align-items: center;
+            /* Pastikan item di tengah secara flex */
+        }
+
+        .agenda-text-row {
+            font-size: 0.5rem;
+            /* Font kecil */
+            line-height: 1.1;
+            /* Jarak antar baris rapat */
+            text-align: center;
+            /* RATA TENGAH */
+            width: 100%;
+
+            /* LOGIKA WRAPPING (KEBAWAH) */
+            white-space: normal;
+            /* Izinkan teks turun ke bawah */
+            word-wrap: break-word;
+            /* Potong kata jika terlalu panjang */
+
+            margin-bottom: 2px;
+            /* Jarak antar agenda */
+            font-weight: 600;
+
+            /* Flex untuk bullet point */
+            display: flex;
+            justify-content: center;
+            /* Konten di tengah */
+            align-items: flex-start;
+            /* Bullet point sejajar baris pertama */
+        }
+
+        /* Bullet Point Styling */
+        .agenda-bullet {
+            font-size: 0.4rem;
+            line-height: 1.2;
+            /* Sesuaikan agar sejajar teks */
+            margin-right: 2px;
+            /* Jarak bullet ke teks */
+            flex-shrink: 0;
+            /* Bullet jangan gepeng */
+        }
+
+        @media (min-width: 1024px) {
+            body.right-panel-closed .in-cell-agenda {
+                display: flex;
+            }
+
+            body.right-panel-closed .day-cell {
+                justify-content: flex-start;
+                padding-top: 4px;
+                min-height: 90px;
+                /* Sedikit ditinggikan untuk akomodasi wrap */
+            }
+
+            body.right-panel-closed .date-wrapper {
+                margin-bottom: 0;
+            }
+
+            body.right-panel-closed .cell-bottom-row {
+                margin-bottom: 4px;
+            }
+        }
+
+        /* Dark Mode */
+        body.dark-mode .in-cell-agenda {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Fix Desktop Header Text Color */
+        /* Pastikan teks span mengikuti warna mode gelap */
+        body.dark-mode #desktopMonthDisplay,
+        body.dark-mode #desktopYearDisplay {
+            color: #f1f5f9 !important;
+            /* Putih Terang */
+        }
+
+        /* Efek Hover di Mode Gelap */
+        body.dark-mode #desktopMonthDisplay:hover,
+        body.dark-mode #desktopYearDisplay:hover {
+            color: #60a5fa !important;
+            /* Biru Muda saat di-hover */
+        }
+
+        /* Layout Fix: Main Container */
+        /* Kita pastikan container utama menjadi acuan posisi (anchor) bagi panah */
+        .app-container {
+            position: relative;
+            overflow: hidden;
+            /* Mencegah scrollbar muncul saat animasi */
+        }
+
+        /* Right Panel (Agenda) */
+        .desktop-right-panel {
+            width: 320px;
+            /* Lebar Normal */
+            min-width: 320px;
+            /* Paksa lebar minimal agar konten tidak gepeng */
+            background: #f1f5f9;
+            display: none;
+            /* Mobile Hidden */
+            flex-direction: column;
+            padding: 1.5rem;
+            border-left: 1px solid #e2e8f0;
+            overflow-y: auto;
+            /* Animasi Transisi Halus */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Agar mau mengecil di Flexbox */
+            flex-shrink: 0;
+        }
+
+        /* Saat Panel Kanan TERTUTUP (Collapsed) */
+        .desktop-right-panel.collapsed {
+            width: 0 !important;
+            min-width: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            border: none !important;
+            opacity: 0;
+            margin-left: 0 !important;
+        }
+
+        @media (min-width: 1024px) {
+            .desktop-right-panel {
+                display: flex !important;
+            }
+        }
+
+        /* Right Arrow Button (Floating) */
+        .right-panel-toggle-arrow {
+            display: none;
+            /* Mobile Hidden */
+            position: absolute;
+            /* Mengambang di atas layout */
+
+            /* POSISI NORMAL: Nempel di sebelah kiri panel (320px dari kanan) */
+            right: 320px;
+
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            /* Sedikit diperlebar agar mudah diklik */
+            height: 60px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-right: none;
+            /* Hilangkan garis kanan */
+            border-radius: 12px 0 0 12px;
+            /* Lengkungan di KIRI */
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            z-index: 50;
+            /* Paling atas */
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 0.9rem;
+
+            /* Animasi Transisi mengikuti Panel */
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .right-panel-toggle-arrow:hover {
+            background: #f8fafc;
+            color: #3b82f6;
+            width: 28px;
+            /* Efek hover melebar sedikit */
+        }
+
+        /* Saat Panel Tertutup, Panah GESER ke Ujung Kanan */
+        .right-panel-toggle-arrow.collapsed {
+            right: 0 !important;
+            /* Nempel mentok kanan */
+            border-right: 1px solid #e2e8f0;
+            /* Munculkan border kanan */
+            border-radius: 12px 0 0 12px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        @media (min-width: 1024px) {
+            .right-panel-toggle-arrow {
+                display: flex;
+            }
+        }
+
+        /* Dark Mode Fix */
+        body.dark-mode .desktop-right-panel {
+            background: #0f172a !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        body.dark-mode .right-panel-toggle-arrow {
+            background: #1e293b;
+            border-color: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .right-panel-toggle-arrow:hover {
+            background: #334155;
+            color: #60a5fa;
+        }
+
+        /* New Sidebar Toggle Arrow */
+        .sidebar-toggle-arrow {
+            display: none;
+            /* Default hidden di mobile */
+            position: absolute;
+            left: 310px;
+            /* Sesuai lebar sidebar saat terbuka */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 60px;
+            /* Bentuk vertikal panjang */
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-left: none;
+            /* Hilangkan garis kiri biar menyatu */
+            border-radius: 0 12px 12px 0;
+            /* Melengkung hanya di kanan */
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            z-index: 40;
+            /* Di atas konten */
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 0.8rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Animasi halus */
+        }
+
+        .sidebar-toggle-arrow:hover {
+            background: #f8fafc;
+            color: #3b82f6;
+            /* Warna biru saat hover */
+        }
+
+        /* Saat Sidebar Tertutup (Collapsed) */
+        .sidebar-toggle-arrow.collapsed {
+            left: 0;
+            /* Pindah ke ujung kiri layar */
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+            border: 1px solid #e2e8f0;
+            /* Munculkan border lengkap */
+            border-left: 1px solid #e2e8f0;
+        }
+
+        /* Tampilkan hanya di Desktop */
+        @media (min-width: 1024px) {
+            .sidebar-toggle-arrow {
+                display: flex;
+            }
+        }
+
+        /* Dark Mode Support for Arrow */
+        body.dark-mode .sidebar-toggle-arrow {
+            background: #1e293b;
+            /* Slate 800 */
+            border-color: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .sidebar-toggle-arrow:hover {
+            background: #334155;
+            color: #60a5fa;
+        }
+
+        body.dark-mode .sidebar-toggle-arrow.collapsed {
+            background: rgba(30, 41, 59, 0.8);
+            /* Transparan gelap */
+        }
+
+        :root {
+            /* Default Theme (Royal) */
+            --bg-color: #cbd5e1;
+            --card-bg: #f8fafc;
+            --premium-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --accent-color: #3b82f6;
+            --text-primary: #1e293b;
+            --gold-gradient: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+            --romance-gradient: linear-gradient(135deg, #be185d 0%, #ec4899 100%);
+        }
+
+        /* Theme Variations Classes */
+        .theme-emerald {
+            --bg-color: #d1fae5;
+            --premium-gradient: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+            --accent-color: #10b981;
+        }
+
+        .theme-amethyst {
+            --bg-color: #f3e8ff;
+            --premium-gradient: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+            --accent-color: #8b5cf6;
+        }
+
+        .theme-crimson {
+            --bg-color: #ffe4e6;
+            --premium-gradient: linear-gradient(135deg, #881337 0%, #e11d48 100%);
+            --accent-color: #f43f5e;
+        }
+
+        .theme-midnight {
+            --bg-color: #cbd5e1;
+            --premium-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --accent-color: #475569;
+        }
+
+        .theme-ocean {
+            --bg-color: #ecfeff;
+            --premium-gradient: linear-gradient(135deg, #155e75 0%, #083344 100%);
+            --accent-color: #06b6d4;
+        }
+
+        .theme-sunset {
+            --bg-color: #ffedd5;
+            --premium-gradient: linear-gradient(135deg, #9a3412 0%, #7c2d12 100%);
+            --accent-color: #ea580c;
+        }
+
+        .theme-coffee {
+            --bg-color: #f5ebe0;
+            --premium-gradient: linear-gradient(135deg, #78350f 0%, #451a03 100%);
+            --accent-color: #a0522d;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.5s ease;
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100%;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        @media (max-width: 1023px) {
+            .app-container {
+                max-width: 448px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            }
+
+            .desktop-sidebar,
+            .desktop-header-controls {
+                display: none;
+                /* Mobile tetap hidden */
+                /* Padding dan Border sudah diatur di class HTML Tailwind di atas */
+            }
+
+            @media (min-width: 1024px) {
+                .desktop-header-controls {
+                    display: flex;
+                    /* Desktop tampil flex */
+                    position: relative;
+                    /* PENTING untuk Absolute Center */
+                    width: 100%;
+                }
+            }
+
+            body {
+                align-items: flex-start;
+            }
+
+            .main-content {
+                flex: 1;
+                display: flex !important;
+                flex-direction: column;
+                overflow: hidden !important;
+                padding: 0 !important;
+                position: relative;
+                min-height: 0;
+            }
+
+            .calendar-section-mobile {
+                flex-shrink: 0;
+                /* Padding dikurangi jadi 4px (0.25rem) biar muat di HP kecil */
+                padding: 1rem 0.25rem 0.5rem 0.25rem;
+                background: #f8fafc;
+                z-index: 10;
+                box-shadow: 0 4px 10px -5px rgba(0, 0, 0, 0.1);
+                transition: margin-top 0.3s ease;
+
+                width: 100%;
+                /* Lebar penuh */
+                display: flex;
+                /* Aktifkan mode flex */
+                justify-content: center;
+                /* Paksa konten ke TENGAH */
+                box-sizing: border-box;
+                /* Hitung padding sebagai bagian dari lebar */
+            }
+
+            .info-section-mobile {
+                flex: 1;
+                overflow-y: auto;
+                padding: 1rem;
+                background: #f1f5f9;
+                scroll-behavior: smooth;
+                padding-bottom: 7rem;
+            }
+
+            .footer-rhadzor {
+                background: var(--premium-gradient) !important;
+                color: white !important;
+                border-top: none !important;
+                padding: 0.75rem 1.5rem;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+                justify-content: space-between !important;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            body {
+                align-items: center;
+                background-image: url('https://images.unsplash.com/photo-1497864149936-d466327778cd?q=80&w=2070&auto=format&fit=crop');
+                background-size: cover;
+                background-position: center;
+                backdrop-filter: blur(8px);
+            }
+
+            .app-container {
+                max-width: 1400px;
+                height: 90vh;
+                max-height: 900px;
+                flex-direction: row;
+                border-radius: 24px;
+                overflow: hidden;
+                box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5);
+                background: rgba(255, 255, 255, 0.95);
+            }
+
+            .header-rhadzor,
+            .footer-rhadzor {
+                display: none !important;
+            }
+
+            .desktop-sidebar {
+                display: flex !important;
+            }
+
+            .desktop-right-panel {
+                display: flex !important;
+            }
+
+            .main-content {
+                padding: 1.5rem 2rem !important;
+                overflow: hidden;
+                background: white;
+                display: block;
+            }
+
+            .calendar-section-mobile {
+                padding: 0;
+                box-shadow: none;
+                background: transparent;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .info-section-mobile {
+                display: none;
+            }
+        }
+
+        .header-rhadzor {
+            background: var(--premium-gradient);
+            padding: 0 1rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 50;
+            height: 70px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .header-left,
+        .header-right {
+            width: 44px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .header-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .nav-arrow {
+            padding: 0.5rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+
+        .nav-arrow:hover {
+            opacity: 1;
+        }
+
+        .hijri-label {
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.6;
+            color: #cbd5e1;
+        }
+
+        .month-year-title {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
+
+        .desktop-sidebar {
+            width: 310px;
+            background: var(--premium-gradient);
+            color: white;
+            display: none;
+            flex-direction: column;
+            padding: 2rem;
+            justify-content: space-between;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+            z-index: 30;
+            /* --- TAMBAHAN UNTUK COLLAPSE --- */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+            white-space: nowrap;
+        }
+
+        /* Class saat sidebar disembunyikan */
+        .desktop-sidebar.collapsed {
+            width: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* --- CSS TAMBAHAN UNTUK ANIMASI HEADER --- */
+
+        /* Keadaan Normal: Judul terlihat */
+        .sidebar-title-wrapper {
+            opacity: 1;
+            /* Transisi saat MUNCUL kembali (sedikit lebih lambat agar halus) */
+            transition: opacity 0.3s ease-in-out 0.1s;
+        }
+
+        /* Keadaan Collapsed: Judul menghilang */
+        .desktop-sidebar.collapsed .sidebar-title-wrapper {
+            opacity: 0;
+            /* Transisi saat MENGHILANG (sangat cepat agar tidak terlihat terpotong) */
+            transition: opacity 0.1s ease-in-out;
+        }
+
+        .desktop-right-panel {
+            width: 320px;
+            background: #f1f5f9;
+            display: none;
+            flex-direction: column;
+            padding: 1.5rem;
+            border-left: 1px solid #e2e8f0;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            scrollbar-width: none;
+        }
+
+        .main-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .calendar-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 1rem 0.5rem;
+            /* Padding dalam dikurangi */
+            position: relative;
+            touch-action: pan-y pinch-zoom;
+            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.05), -8px -8px 16px rgba(255, 255, 255, 0.8);
+            perspective: 1200px;
+
+            width: 100%;
+            /* Mengikuti lebar bapaknya */
+            max-width: 100%;
+            /* Jangan pernah melebihi layar */
+            box-sizing: border-box;
+            /* Padding dihitung di dalam lebar */
+        }
+
+        @media (min-width: 1024px) {
+            .calendar-card {
+                box-shadow: none;
+                background: transparent;
+                padding: 0;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .calendar-grid-container {
+                height: 100%;
+            }
+
+            .calendar-grid {
+                height: 100%;
+                grid-template-rows: 30px repeat(6, 1fr);
+            }
+        }
+
+        .calendar-grid-container {
+            width: 100%;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            /* GANTI JADI 1px: Biar muat banyak */
+            width: 100%;
+        }
+
+        @media (min-width: 1024px) {
+            .calendar-grid {
+                gap: 8px;
+            }
+        }
+
+        .day-label {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #64748b;
+            padding-bottom: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        @media (min-width: 1024px) {
+            .day-label {
+                padding-bottom: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        .day-cell {
+            aspect-ratio: 1/1.1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            font-size: 1.35rem;
+            /* DIBESARKAN (Tadinya 1.1rem) */
+            font-weight: 700;
+            /* DITEBALKAN */
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #1e293b;
+            border: 1px solid transparent;
+            padding-top: 4px;
+            /* Sedikit padding atas biar seimbang */
+        }
+
+        .date-wrapper {
+            line-height: 0.9;
+            margin-bottom: 2px;
+        }
+
+        .day-cell.other-month {
+            opacity: 0.25;
+            transform: scale(0.9);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        @media (min-width: 1024px) {
+            .day-cell {
+                aspect-ratio: auto;
+                min-height: 40px;
+                border-radius: 12px;
+                background: #f8fafc;
+                align-items: center;
+                justify-content: center;
+                padding: 2px;
+            }
+
+            .day-cell .date-wrapper {
+                font-size: 1.4rem;
+                font-weight: 700;
+                margin-bottom: 1px;
+            }
+
+            /* Update CSS Hover */
+            /* Gunakan :not(.today) agar hover abu-abu TIDAK berlaku untuk hari ini */
+            .day-cell:hover:not(.other-month):not(.today) {
+                background: #e2e8f0;
+                transform: translateY(-2px);
+                color: #1e293b;
+                /* Pastikan teks jadi gelap saat background abu */
+            }
+
+            /* Khusus Hover di Hari Ini: Tetap pertahankan background gradient, cuma mainkan efek */
+            .day-cell.today:hover {
+                transform: scale(1.05) translateY(-2px);
+                /* Membesar sedikit */
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+                /* Bayangan makin dramatis */
+                filter: brightness(1.1);
+                /* Sedikit lebih terang biar 'glowing' */
+                z-index: 10;
+            }
+
+            .hijri-text {
+                top: 4px;
+                right: 6px;
+                font-size: 0.6rem !important;
+            }
+
+            .pasaran-text {
+                margin-top: 0;
+                align-self: center;
+                font-size: 0.6rem !important;
+                opacity: 0.7;
+            }
+        }
+
+        .day-cell.today {
+            background: var(--premium-gradient);
+            color: white !important;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transform: scale(1.02);
+            z-index: 2;
+            border: none;
+        }
+
+        @keyframes attractive-pulse {
+            0% {
+                box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.4);
+                transform: scale(1.02);
+            }
+
+            50% {
+                box-shadow: 0 0 0 15px rgba(59, 130, 246, 0);
+                transform: scale(1.1);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0px rgba(59, 130, 246, 0);
+                transform: scale(1.02);
+            }
+        }
+
+        .today-jump-animation {
+            animation: attractive-pulse 0.8s ease-out 2;
+        }
+
+        .day-cell.birthday {
+            background: var(--gold-gradient);
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+            border: 2px solid white;
+            z-index: 3;
+        }
+
+        .day-cell.anniversary {
+            background: var(--romance-gradient);
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(190, 24, 93, 0.4);
+            border: 2px solid white;
+            z-index: 3;
+        }
+
+        .day-cell.sunday,
+        .day-cell.holiday {
+            color: #ef4444;
+        }
+
+        .day-cell.friday {
+            color: #059669;
+        }
+
+        .date-wrapper {
+            position: relative;
+            line-height: 1;
+        }
+
+        .cuti-dot,
+        .obs-dot {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .cuti-dot {
+            bottom: 2px;
+            right: -6px;
+            background-color: #ef4444;
+        }
+
+        .obs-dot {
+            bottom: 2px;
+            left: -6px;
+            background-color: #3b82f6;
+        }
+
+        /* Note Indicator (Line) */
+
+        /* Row Wrapper */
+        .note-indicator-row {
+            position: absolute;
+            bottom: -4px;
+            /* Default Mobile: Rapat dikit biar muat */
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2px;
+            /* Jarak antar garis */
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            pointer-events: none;
+            height: 4px;
+        }
+
+        /* Short Line (1-3 Notes) */
+        .note-dash-small {
+            width: 6px;
+            height: 3px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        /* Long Line (>3 Notes) */
+        .note-line-long {
+            width: 24px;
+            height: 3px;
+            background-color: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        /* White Color when Today */
+        .day-cell.today .note-dash-small,
+        .day-cell.today .note-line-long {
+            background-color: #ffffff !important;
+        }
+
+        /* Desktop View */
+        @media (min-width: 1024px) {
+            .note-indicator-row {
+                bottom: -3px;
+                /* Turunkan biar tidak mepet angka tanggal */
+                gap: 3px;
+            }
+
+            .note-dash-small {
+                width: 8px;
+                height: 3px;
+            }
+
+            .note-line-long {
+                width: 30px;
+                height: 3px;
+            }
+        }
+
+        /* Line color when today */
+        .day-cell.today .note-dash,
+        .day-cell.today .note-line {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Desktop Spacing Fix */
+        @media (min-width: 1024px) {
+            .note-indicator-container {
+                bottom: 6px;
+                /* Jarak diperlebar agar tidak mepet angka */
+            }
+
+            /* Sedikit perbesar ukuran garis di desktop biar jelas */
+            .note-dash {
+                width: 7px;
+                height: 3px;
+            }
+
+            .note-line {
+                width: 28px;
+                height: 3px;
+            }
+        }
+
+        /* Line color when today (for contrast with dark/gradient background) */
+        .day-cell.today .note-indicator {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        @media (min-width: 1024px) {
+            .cuti-dot {
+                bottom: 3px;
+                right: -6px;
+                width: 5px;
+                height: 5px;
+            }
+
+            .obs-dot {
+                bottom: 3px;
+                left: -6px;
+                width: 5px;
+                height: 5px;
+            }
+
+            .note-indicator {
+                bottom: 2px;
+                width: 24px;
+            }
+        }
+
+        .cell-bottom-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            margin-top: 1px;
+            width: 100%;
+            overflow: hidden;
+            /* Mencegah melebar keluar kotak */
+        }
+
+        .pasaran-text {
+            font-size: 0.4rem;
+            font-weight: 700;
+            opacity: 0.8;
+            text-transform: uppercase;
+            margin: 0 !important;
+            white-space: nowrap;
+            /* Mencegah teks turun baris */
+            letter-spacing: -0.05em;
+            /* Huruf dirapatkan sedikit */
+        }
+
+        /* Hijri Date 1 Badge */
+        .hijri-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 12px;
+            /* Perkecil sedikit */
+            height: 12px;
+            border-radius: 50%;
+            color: white;
+            font-size: 0.35rem;
+            /* Font dalam lingkaran diperkecil */
+            font-weight: 800;
+            line-height: 1;
+            flex-shrink: 0;
+            /* Agar lingkaran tidak gepeng */
+        }
+
+        /* Regular Hijri Text */
+        .hijri-text {
+            font-size: 0.4rem;
+            font-weight: 700;
+            opacity: 0.8;
+            position: static !important;
+            margin: 0 !important;
+        }
+
+        .hidden-element {
+            display: none !important;
+        }
+
+        .holiday-item,
+        .observance-item,
+        .birthday-item,
+        .anniversary-item,
+        .note-item {
+            padding: 0.85rem 1rem;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .holiday-item {
+            border-left: 4px solid #ef4444;
+        }
+
+        .observance-item {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .birthday-item {
+            background: #fffbeb;
+            border-left: 4px solid #d97706;
+        }
+
+        .anniversary-item {
+            background: #fdf2f8;
+            border-left: 4px solid #be185d;
+        }
+
+        .note-item {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+        }
+
+        .highlight-today {
+            background-color: #fef9c3 !important;
+            box-shadow: 0 4px 6px -1px rgba(250, 204, 21, 0.1), 0 2px 4px -1px rgba(250, 204, 21, 0.06) !important;
+            transform: scale(1.02);
+            z-index: 5;
+
+            /* --- PERBAIKAN DI SINI --- */
+            /* Kita hanya beri garis kuning di Atas, Kanan, Bawah. */
+            /* Kiri TIDAK disentuh agar warna identitas (Merah/Biru/Hijau) tetap muncul */
+            border-top: 1px solid #fde047;
+            border-right: 1px solid #fde047;
+            border-bottom: 1px solid #fde047;
+        }
+
+        .event-list-container:empty::before {
+            content: 'Tidak ada agenda bulan ini';
+            display: block;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-top: 2rem;
+        }
+
+        .footer-rhadzor {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Top-aligned modal (Month/Year/Search) */
+        .modal-overlay.pos-top {
+            align-items: flex-start !important;
+            padding-top: env(safe-area-inset-top, 0);
+        }
+
+        /* Center-aligned modal (Preview & Day Detail) */
+        .modal-overlay.pos-center {
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 1rem !important;
+            /* Diperkecil agar ruang konten lebih luas */
+        }
+
+        .modal-overlay.pos-center .modal-content {
+            margin: auto !important;
+            width: 94% !important;
+            /* Dibuka lebih lebar sesuai request user */
+            max-width: 480px !important;
+            border-radius: 32px !important;
+            transform: scale(0.9) !important;
+            max-height: 85vh !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-overlay.pos-center.active .modal-content {
+            transform: scale(1) !important;
+        }
+
+        .modal-overlay.pos-top .modal-content {
+            margin-top: 0 !important;
+        }
+
+        @media (max-width: 1023px) {
+            .modal-overlay {
+                align-items: flex-end;
+            }
+
+            .modal-overlay.pos-top .modal-content {
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+                border-bottom-left-radius: 28px;
+                border-bottom-right-radius: 28px;
+                transform: translateY(-100%);
+                margin-bottom: auto !important;
+                /* Paksa ke atas */
+            }
+
+            .modal-overlay.pos-top.active .modal-content {
+                transform: translateY(0) !important;
+            }
+
+            .modal-content {
+                background: white;
+                width: 100%;
+                max-width: 448px;
+                margin: 0 auto;
+                border-top-left-radius: 28px;
+                border-top-right-radius: 28px;
+                padding: 1.5rem;
+                transform: translateY(100%);
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+
+            .modal-overlay.active .modal-content {
+                transform: translateY(0);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .modal-overlay {
+                align-items: center;
+                justify-content: center;
+            }
+
+            .modal-content {
+                background: white;
+                width: 400px;
+                border-radius: 24px;
+                padding: 2rem;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                transform: scale(0.9);
+                transition: transform 0.2s;
+            }
+
+            .modal-overlay.active .modal-content {
+                transform: scale(1);
+            }
+
+            .modal-header-line {
+                display: none;
+            }
+        }
+
+        .modal-header-line {
+            width: 48px;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 99px;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .desktop-header-controls {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        @media (min-width: 1024px) {
+            .desktop-header-controls {
+                display: flex;
+            }
+        }
+
+        .toggle-switch {
+            appearance: none;
+            width: 40px;
+            height: 22px;
+            background: #cbd5e1;
+            border-radius: 99px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-switch:checked {
+            background: var(--accent-color);
+        }
+
+        .toggle-switch:checked::after {
+            transform: translateX(18px);
+        }
+
+        .premium-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e293b;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1rem;
+        }
+
+        /* SCROLLER FIX: Hiding scrollbars across all scroller types */
+        .scroller-wrapper {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            display: flex;
+            mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+        }
+
+        .scroller-col {
+            flex: 1;
+            overflow-y: auto;
+            padding: 75px 0;
+            text-align: center;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .scroller-col::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scroller-item {
+            padding: 10px;
+            font-size: 1.1rem;
+            color: #94a3b8;
+            cursor: pointer;
+            opacity: 0.5;
+            scroll-snap-align: center;
+        }
+
+        .scroller-item.active {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .selection-indicator {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 50px;
+            transform: translateY(-50%);
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Ensure infinite scroll containers also hide scrollbars */
+        #scrollDay,
+        #scrollMonth,
+        #scrollYear,
+        #yearListScroll,
+        #monthScroller,
+        #yearScroller {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        #scrollDay::-webkit-scrollbar,
+        #scrollMonth::-webkit-scrollbar,
+        #scrollYear::-webkit-scrollbar,
+        #yearListScroll::-webkit-scrollbar,
+        #monthScroller::-webkit-scrollbar,
+        #yearScroller::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Notes View Styles */
+        .notes-view-container {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background: #f8fafc;
+        }
+
+        /* CSS Fix for Scroll */
+        .notes-view-container.active {
+            display: flex !important;
+            /* Wajib Flex */
+            flex-direction: column !important;
+            /* Wajib Column (Atas ke Bawah) */
+            height: 100% !important;
+            /* Wajib Full Height */
+            width: 100% !important;
+            overflow: hidden !important;
+            /* Mencegah scroll body utama */
+        }
+
+        .notes-tab-group {
+            display: flex;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 12px;
+            margin: 1rem 1.5rem 0.5rem 1.5rem;
+        }
+
+        .notes-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 8px;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .notes-tab.active {
+            background: white;
+            color: #0f172a;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .notes-nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1.5rem;
+        }
+
+        /* Ensure body does not push content out of safe area */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            /* Mengikuti tema terpilih */
+        }
+
+        .header-rhadzor {
+            /* Gunakan gradient dari tema aktif */
+            background: var(--premium-gradient) !important;
+
+            /* Menghapus tinggi kaku, biarkan padding yang bekerja */
+            height: auto !important;
+            min-height: 60px;
+
+            /* Ruang untuk status bar (Jam, Baterai) */
+            padding-top: env(safe-area-inset-top) !important;
+            padding-bottom: 10px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footer-rhadzor {
+            /* Gunakan gradient dari tema aktif */
+            background: var(--premium-gradient) !important;
+
+            height: auto !important;
+            /* Ruang bawah agar navigasi HP tidak menutupi ikon */
+            padding-bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+            padding-top: 10px;
+
+            display: flex;
+            align-items: center;
+        }
+
+        /* CSS for Top-Positioned Modal (Header) */
+        .modal-overlay.pos-top {
+            align-items: flex-start !important;
+            /* Paksa konten nempel di atas */
+            padding-top: 85px;
+            /* Memberi jarak agar tidak menutupi Header */
+        }
+
+        /* Mengubah animasi dan bentuk sudut untuk modal atas */
+        .modal-overlay.pos-top .modal-content {
+            border-radius: 0 0 24px 24px !important;
+            /* Melengkung di bawah, rata di atas */
+            transform: translateY(-100%);
+            /* Animasi mulai dari atas layar (tersembunyi) */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-height: 60vh;
+            /* Membatasi tinggi agar tidak terlalu panjang */
+        }
+
+        /* Saat aktif, turun ke posisi normal */
+        .modal-overlay.pos-top.active .modal-content {
+            transform: translateY(0);
+        }
+
+        /* Dark Mode CSS */
+        body.dark-mode {
+            background-color: #0f172a !important;
+            /* Latar belakang utama gelap */
+            color: #f1f5f9;
+        }
+
+        /* Mengubah semua elemen yang tadinya Putih/Terang menjadi Gelap */
+        body.dark-mode .app-container,
+        body.dark-mode .main-content,
+        body.dark-mode .calendar-card,
+        body.dark-mode .calendar-section-mobile,
+        body.dark-mode .info-section-mobile,
+        body.dark-mode .modal-content,
+        body.dark-mode .bg-white,
+        body.dark-mode .bg-slate-50,
+        body.dark-mode .bg-slate-100 {
+            background-color: #1e293b !important;
+            /* Slate 800 */
+            color: #f1f5f9 !important;
+            border-color: #334155 !important;
+        }
+
+        /* Memperbaiki warna teks yang dipaksa gelap oleh Tailwind */
+        body.dark-mode .text-slate-900,
+        body.dark-mode .text-slate-800,
+        body.dark-mode .text-slate-700,
+        body.dark-mode .text-slate-600,
+        body.dark-mode .text-slate-500,
+        body.dark-mode .text-gray-600 {
+            color: #cbd5e1 !important;
+            /* Slate 300 (Terang) */
+        }
+
+        /* Input Form & Textarea */
+        body.dark-mode input,
+        body.dark-mode textarea,
+        body.dark-mode select,
+        body.dark-mode .premium-select {
+            background-color: #334155 !important;
+            /* Slate 700 */
+            color: white !important;
+            border-color: #475569 !important;
+        }
+
+        /* Item List (Libur, Note, dll) */
+        body.dark-mode .holiday-item,
+        body.dark-mode .observance-item,
+        body.dark-mode .note-item,
+        body.dark-mode .birthday-item,
+        body.dark-mode .anniversary-item {
+            background-color: #334155 !important;
+            border-bottom: 1px solid #475569;
+            box-shadow: none !important;
+        }
+
+        /* Tombol Pilihan Bulan/Tahun */
+        body.dark-mode .scroller-item {
+            color: #64748b;
+            /* Item tidak aktif */
+        }
+
+        body.dark-mode .scroller-item.active {
+            color: #ffffff !important;
+            /* Item aktif jadi putih */
+        }
+
+        /* Dark Mode Date Colors */
+
+        /* 1. Tanggal Normal (Senin-Kamis/Sabtu) jadi Putih */
+        body.dark-mode .day-cell {
+            color: #f8fafc !important;
+            /* Slate-50 (Putih Bersih) */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            /* Sedikit bayangan biar makin jelas */
+        }
+
+        /* 2. Pasaran & Hijriah jadi Abu Terang */
+        body.dark-mode .pasaran-text,
+        body.dark-mode .hijri-text {
+            color: #cbd5e1 !important;
+            /* Slate-300 */
+            opacity: 1 !important;
+            /* Opacity dipullkan agar terbaca */
+        }
+
+        /* 3. Khusus Tanggal Merah (Minggu/Libur) - Ubah Merah Gelap jadi Merah Terang (Pastel) */
+        body.dark-mode .day-cell.sunday,
+        body.dark-mode .day-cell.holiday {
+            color: #f87171 !important;
+            /* Red-400 (Lebih terang dari default) */
+        }
+
+        /* 4. Khusus Hari Jumat - Ubah Hijau Gelap jadi Hijau Terang */
+        body.dark-mode .day-cell.friday {
+            color: #34d399 !important;
+            /* Emerald-400 */
+        }
+
+        /* 5. Nama Hari (MINGGU, SENIN...) di header kalender */
+        body.dark-mode .day-label {
+            color: #94a3b8 !important;
+            /* Slate-400 */
+        }
+
+        /* 6. Judul Bulan/Tahun di Detail Modal (Penting saat pop-up muncul) */
+        body.dark-mode .text-slate-900 {
+            color: #f1f5f9 !important;
+        }
+
+        body.dark-mode .text-slate-500 {
+            color: #94a3b8 !important;
+        }
+
+        /* --- UPDATE FIX: CATATANKU DARK MODE --- */
+
+        /* 1. Background Container Utama */
+        body.dark-mode .notes-view-container {
+            background-color: #0f172a !important;
+            /* Gelap pekat */
+        }
+
+        /* 2. Group Tab (Wadah Tombol Mingguan/Bulanan) */
+        body.dark-mode .notes-tab-group {
+            background-color: #1e293b !important;
+            /* Slate 800 */
+            border: 1px solid #334155;
+            /* Border halus */
+        }
+
+        /* 3. Tab Item (Saat Tidak Aktif) */
+        body.dark-mode .notes-tab {
+            color: #94a3b8 !important;
+            /* Teks abu */
+        }
+
+        /* 4. Tab Item (Saat Aktif) */
+        body.dark-mode .notes-tab.active {
+            background-color: #334155 !important;
+            /* Slate 700 (Lebih terang dikit) */
+            color: #f8fafc !important;
+            /* Teks putih */
+            box-shadow: none !important;
+        }
+
+        /* 5. Navigasi Atas (Label "Minggu Ini", Tombol Panah) */
+        body.dark-mode #notesNavLabel {
+            color: #f1f5f9 !important;
+            /* Judul putih */
+        }
+
+        body.dark-mode .notes-nav-bar button {
+            background-color: #334155 !important;
+            /* Tombol panah gelap */
+            color: #cbd5e1 !important;
+        }
+
+        /* 6. KARTU CATATAN (List Item) */
+        /* Override untuk elemen yang dibuat via JavaScript */
+        body.dark-mode #notesListContainer>div {
+            background-color: #1e293b !important;
+            /* Background kartu gelap */
+            box-shadow: none !important;
+            border: 1px solid #334155;
+            /* Tambah border agar terpisah jelas */
+            border-left: 4px solid #10b981 !important;
+            /* Border hijau tetap */
+        }
+
+        /* Efek Hover pada Kartu Catatan */
+        body.dark-mode #notesListContainer>div:hover {
+            background-color: #334155 !important;
+        }
+
+        /* Teks Tanggal & Ikon Edit di dalam kartu */
+        body.dark-mode #notesListContainer .text-slate-500,
+        body.dark-mode #notesListContainer .text-slate-300 {
+            color: #94a3b8 !important;
+            /* Abu terang */
+        }
+
+        /* Teks Isi Catatan Utama */
+        body.dark-mode #notesListContainer .text-slate-700 {
+            color: #e2e8f0 !important;
+            /* Putih agak abu (enak dibaca) */
+        }
+
+        /* 7. Empty State (Saat tidak ada catatan) */
+        body.dark-mode #notesListContainer .fa-clipboard-list {
+            color: #334155 !important;
+            /* Ikon besar jadi samar gelap */
+        }
+
+        /* === NEW ATTRACTIVE THEME TOGGLE === */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Wadah Kapsul */
+        .theme-toggle-pill {
+            position: relative;
+            width: 56px;
+            height: 28px;
+            background: #60a5fa;
+            /* Langit Siang (Biru Terang) */
+            border-radius: 50px;
+            transition: all 0.4s ease;
+            padding: 3px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+        }
+
+        /* Lingkaran Bergerak (Matahari/Bulan) */
+        .theme-toggle-circle {
+            width: 22px;
+            height: 22px;
+            background: #fcd34d;
+            /* Matahari Kuning */
+            border-radius: 50%;
+            position: absolute;
+            left: 3px;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            /* Efek membal */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        /* Ikon di dalam lingkaran */
+        .theme-toggle-icon {
+            font-size: 0.75rem;
+            color: #b45309;
+            /* Warna ikon matahari */
+            transition: all 0.3s;
+        }
+
+        /* Elemen Dekorasi (Awan/Bintang) Background */
+        .toggle-bg-icon {
+            position: absolute;
+            font-size: 0.7rem;
+            color: white;
+            opacity: 0.8;
+            transition: all 0.4s;
+        }
+
+        .icon-cloud {
+            right: 8px;
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .icon-stars {
+            left: 8px;
+            transform: translateY(10px);
+            opacity: 0;
+        }
+
+        /* --- STATE: DARK MODE ACTIVE --- */
+        body.dark-mode .theme-toggle-pill {
+            background: #312e81;
+            /* Langit Malam (Indigo Gelap) */
+        }
+
+        body.dark-mode .theme-toggle-circle {
+            left: calc(100% - 25px);
+            /* Pindah ke kanan */
+            background: #f8fafc;
+            /* Bulan Putih */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            /* Glowing effect */
+        }
+
+        body.dark-mode .theme-toggle-icon {
+            color: #312e81;
+            /* Warna ikon bulan */
+            content: "\f186";
+            /* Kode FontAwesome Moon */
+        }
+
+        /* Animasi Background Icons */
+        body.dark-mode .icon-cloud {
+            transform: translateY(10px);
+            opacity: 0;
+        }
+
+        body.dark-mode .icon-stars {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Hover Effect */
+        .theme-switch-wrapper:hover .theme-toggle-pill {
+            transform: scale(1.02);
+        }
+
+        /* === PERBAIKAN KHUSUS DESKTOP (WEB VIEW) DARK MODE === */
+        @media (min-width: 1024px) {
+
+            /* 1. Ubah background kotak tanggal jadi Gelap */
+            body.dark-mode .day-cell {
+                background-color: #1e293b !important;
+                /* Slate 800 (Gelap) */
+                border: 1px solid #334155;
+                /* Garis tepi tipis agar kotak terlihat rapi */
+                box-shadow: none;
+                /* Hilangkan bayangan default putih */
+            }
+
+            /* 2. Ubah efek saat mouse diarahkan (Hover) di mode gelap */
+            body.dark-mode .day-cell:hover:not(.other-month):not(.today) {
+                background-color: #334155 !important;
+                /* Slate 700 (Sedikit lebih terang) */
+                transform: translateY(-2px);
+            }
+
+            /* 3. Pastikan Container Utama di Desktop juga Gelap */
+            body.dark-mode .main-content {
+                background-color: #0f172a !important;
+                /* Slate 900 (Sangat Gelap) */
+            }
+
+            /* 4. Perbaiki Warna Judul Bulan & Tahun di Header Desktop */
+            body.dark-mode #desktopMonthYear {
+                color: #f1f5f9 !important;
+                /* Putih Terang */
+            }
+
+            body.dark-mode #desktopMonthYear:hover {
+                color: #60a5fa !important;
+                /* Biru saat di-hover */
+            }
+
+            body.dark-mode #desktopHijri {
+                color: #94a3b8 !important;
+                /* Abu-abu */
+            }
+
+            /* 5. Perbaiki Tombol Navigasi (Panah Kiri/Kanan & Search) di Desktop */
+            body.dark-mode .desktop-header-controls button {
+                background-color: transparent;
+                color: #cbd5e1 !important;
+                /* Ikon Putih Pudar */
+                border-color: #475569;
+                /* Border tombol */
+            }
+
+            body.dark-mode .desktop-header-controls button:hover {
+                background-color: #334155 !important;
+                /* Background saat hover */
+                color: #ffffff !important;
+                /* Ikon Putih Terang */
+                border-color: #64748b;
+            }
+        }
+
+        /* === HAPUS BACKGROUND KOTAK DI DESKTOP DARK MODE === */
+        /* === FINAL FIX: PURE BLACK DESKTOP CALENDAR === */
+        @media (min-width: 1024px) {
+
+            /* 1. Hapus total background pada wadah utama */
+            body.dark-mode .app-container,
+            body.dark-mode .main-content,
+            body.dark-mode .calendar-card,
+            body.dark-mode .calendar-grid-container {
+                background: #0f172a !important;
+                /* Warna dasar gelap (Slate 900) */
+                background-color: #0f172a !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            /* 2. KUNCI UTAMA: Hapus background pada KOTAK TANGGAL (.day-cell) */
+            body.dark-mode .day-cell {
+                background-color: transparent !important;
+                /* Transparan agar menyatu */
+                border: none !important;
+                /* Hapus garis pinggir */
+                box-shadow: none !important;
+                /* Hapus bayangan */
+                color: #f1f5f9 !important;
+                /* Angka tetap putih terang */
+            }
+
+            /* 3. Efek Hover: Munculkan highlight halus saat mouse lewat */
+            body.dark-mode .day-cell:hover:not(.other-month):not(.today) {
+                background-color: rgba(255, 255, 255, 0.1) !important;
+                /* Putih transparan 10% */
+                transform: scale(1.1);
+                /* Sedikit membesar biar interaktif */
+                border-radius: 12px;
+            }
+
+            /* 4. Pastikan tanggal bulan lain (abu-abu) tidak mengganggu */
+            body.dark-mode .day-cell.other-month {
+                opacity: 0.3;
+                background-color: transparent !important;
+            }
+
+            /* 5. Perbaiki warna teks header (Senin, Selasa...) agar kontras */
+            body.dark-mode .day-label {
+                color: #64748b !important;
+                /* Slate 500 */
+                font-weight: 900;
+                letter-spacing: 0.05em;
+            }
+
+            /* 6. Pastikan Panel Kanan (Agenda) & Sidebar menyatu */
+            body.dark-mode .desktop-right-panel,
+            body.dark-mode .desktop-sidebar {
+                background-color: #0f172a !important;
+                /* Samakan dengan background utama */
+                border-color: rgba(255, 255, 255, 0.1) !important;
+                /* Garis pemisah sangat tipis */
+            }
+
+            /* 7. Hapus border header atas */
+            body.dark-mode .desktop-header-controls {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+        }
+
+        /* === POPUP HOVER AGENDA (TOOLTIP) === */
+        #calendarHoverTooltip {
+            position: fixed;
+            background: rgba(15, 23, 42, 0.95);
+            /* Slate 900 dengan transparansi */
+            backdrop-filter: blur(4px);
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            z-index: 9999;
+            /* Pastikan selalu paling atas */
+            pointer-events: none;
+            /* Agar tidak menghalangi klik mouse */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            white-space: nowrap;
+            /* Mencegah teks patah berantakan */
+        }
+
+        /* Saat Popup Tampil */
+        #calendarHoverTooltip.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Panah Kecil Menunjuk ke Bawah */
+        #calendarHoverTooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(15, 23, 42, 0.95) transparent transparent transparent;
+        }
+
+        /* Jika popup muncul di BAWAH kotak (karena mentok atas) */
+        #calendarHoverTooltip.tooltip-bottom::after {
+            top: auto;
+            bottom: 100%;
+            border-color: transparent transparent rgba(15, 23, 42, 0.95) transparent;
+        }
+
+        /* --- DARK MODE SUPPORT UNTUK POPUP --- */
+        body.dark-mode #calendarHoverTooltip {
+            background: rgba(248, 250, 252, 0.95);
+            /* Putih Terang */
+            color: #0f172a;
+            /* Teks Gelap */
+        }
+
+        body.dark-mode #calendarHoverTooltip::after {
+            border-color: rgba(248, 250, 252, 0.95) transparent transparent transparent;
+        }
+
+        body.dark-mode #calendarHoverTooltip.tooltip-bottom::after {
+            border-color: transparent transparent rgba(248, 250, 252, 0.95) transparent;
+        }

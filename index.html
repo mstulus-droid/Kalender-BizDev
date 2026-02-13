@@ -1,0 +1,341 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Kalender BizDev</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: {
+                        'lg': '1024px',
+                    },
+                    colors: {
+                        primary: 'var(--accent-color)',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- === LEFT SIDEBAR (DESKTOP) === -->
+        <div class="desktop-sidebar">
+            <div>
+                <div class="flex items-center gap-3 mb-8 overflow-hidden">
+                    <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center">
+                        <img src="icons/icon_512.png" alt="Logo BizDev" id="logoBizdev"
+                            class="w-full h-full object-contain">
+                    </div>
+
+                    <div class="sidebar-title-wrapper">
+                        <h1 class="font-bold text-lg leading-none tracking-wider whitespace-nowrap">KALENDER BIZDEV</h1>
+                    </div>
+                </div>
+
+                <div class="space-y-4 mb-8">
+                    <p class="text-xs font-bold opacity-50 uppercase tracking-widest mb-2">Tampilan</p>
+
+                    <div class="theme-switch-wrapper" onclick="toggleSetting('darkMode')">
+                        <span class="text-sm font-medium opacity-90">Mode Tampilan</span>
+                        <div class="theme-toggle-pill" id="desktopThemeToggle">
+                            <i class="fas fa-cloud toggle-bg-icon icon-cloud"></i>
+                            <i class="fas fa-star toggle-bg-icon icon-stars text-[0.5rem]"></i>
+                            <div class="theme-toggle-circle">
+                                <i class="fas fa-sun theme-toggle-icon" id="desktopToggleIcon"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-3">
+                        <span class="text-sm font-medium opacity-90">Kalender Hijriah</span>
+                        <input type="checkbox" class="toggle-switch" id="dsk-hijri"
+                            onchange="event.stopPropagation(); toggleSetting('showHijri')">
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium opacity-90">Hari Pasaran</span>
+                        <input type="checkbox" class="toggle-switch" id="dsk-pasaran"
+                            onchange="event.stopPropagation(); toggleSetting('showPasaran')">
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium opacity-90">Hari Peringatan</span>
+                        <input type="checkbox" class="toggle-switch" id="dsk-obs"
+                            onchange="event.stopPropagation(); toggleSetting('showObservances')">
+                    </div>
+                </div>
+
+                <div class="space-y-2 mb-8">
+                    <p class="text-xs font-bold opacity-50 uppercase tracking-widest mb-1">Tema Warna</p>
+                    <button onclick="cycleTheme()"
+                        class="w-full bg-white/10 hover:bg-white/20 transition p-2 rounded-xl flex items-center justify-between px-4 font-bold text-sm">
+                        <span id="themeNameDesktop">Royal Blue</span>
+                        <i class="fas fa-palette"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-2 mb-8">
+                    <p class="text-xs font-bold opacity-50 uppercase tracking-widest mb-1">Efek Transisi</p>
+                    <select class="premium-select" id="transitionSelect" onchange="updateTransition(this.value)">
+                        <option value="none">None (Instant)</option>
+                        <option value="slide">Slide (Klasik)</option>
+                        <option value="cube">Cube Flip (3D)</option>
+                        <option value="fade">Fade (Lembut)</option>
+                        <option value="zoom">Zoom In/Out</option>
+                        <option value="flip">Flip Card</option>
+                    </select>
+                </div>
+
+                <button id="btnToggleViewDesktop" onclick="toggleNotesView()"
+                    class="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded-xl flex items-center justify-center gap-2 mb-2 font-bold text-sm">
+                    <i class="fas fa-book"></i> Catatanku
+                </button>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="exportData()"
+                        class="flex-1 bg-white/10 hover:bg-white/20 transition p-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm text-white">
+                        <i class="fas fa-download"></i> Backup
+                    </button>
+
+                    <label
+                        class="flex-1 bg-white/10 hover:bg-white/20 transition p-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm text-white cursor-pointer">
+                        <i class="fas fa-upload"></i> Restore
+                        <input type="file" class="hidden" accept=".json" onchange="importData(this)">
+                    </label>
+                </div>
+            </div>
+
+            <div class="text-center opacity-40 text-xs">
+                &copy; Rhadz Calendar
+            </div>
+        </div>
+        <div class="sidebar-toggle-arrow" id="sidebarArrowBtn" onclick="toggleSidebar()">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+
+        <!-- === HEADER (MOBILE ONLY) === -->
+        <header class="header-rhadzor" id="mainHeader">
+            <div class="header-left">
+                <div class="btn-setting" onclick="openSettings()">
+                    <i class="fas fa-cog"></i>
+                </div>
+            </div>
+            <div class="header-center" id="calendarHeaderCenter">
+                <div class="flex items-center gap-2">
+                    <div class="nav-arrow" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></div>
+                    <div class="month-year-title">
+                        <span id="monthLabelMobile" onclick="openMonthSelector()">JANUARI</span>
+                        <span id="yearLabelMobile" onclick="openYearSelector()">2026</span>
+                    </div>
+                    <div class="nav-arrow" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></div>
+                </div>
+                <div class="hijri-label" id="hijriRangeMobile">RAJAB - SYA'BAN</div>
+            </div>
+            <div class="header-center hidden" id="notesHeaderCenter">
+                <span class="font-bold tracking-widest uppercase text-sm">CATATANKU</span>
+            </div>
+            <div class="header-right">
+                <div class="btn-today-icon" onclick="goToToday()">
+                    <i class="fas fa-calendar-day text-sm"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- === MAIN CONTENT === -->
+        <main class="main-content">
+
+            <div
+                class="desktop-header-controls relative hidden lg:flex items-center justify-between py-4 mb-2 border-b border-slate-200">
+
+                <div class="flex items-center z-20">
+                    <button onclick="goToToday()"
+                        class="w-10 h-10 rounded-full bg-white border border-slate-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 flex items-center justify-center text-slate-600 transition shadow-sm"
+                        title="Ke Hari Ini">
+                        <i class="fas fa-calendar-day"></i>
+                    </button>
+                </div>
+
+                <div
+                    class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-6 z-10">
+
+                    <button onclick="changeMonth(-1)"
+                        class="w-10 h-10 rounded-full bg-transparent hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                        <i class="fas fa-chevron-left text-lg"></i>
+                    </button>
+
+                    <div class="text-center min-w-[200px]">
+                        <h2
+                            class="text-2xl font-black text-slate-800 tracking-tight leading-none flex gap-2 justify-center">
+                            <span id="desktopMonthDisplay" onclick="openMonthSelector()"
+                                class="cursor-pointer hover:text-blue-600 transition">
+                                JANUARI
+                            </span>
+                            <span id="desktopYearDisplay" onclick="openYearSelector()"
+                                class="cursor-pointer hover:text-blue-600 transition">
+                                2026
+                            </span>
+                        </h2>
+
+                        <p class="text-[0.65rem] text-slate-500 font-bold tracking-wider uppercase mt-1 cursor-default whitespace-nowrap"
+                            id="desktopHijri">
+                            1447 HIJRIAH
+                        </p>
+                    </div>
+
+                    <button onclick="changeMonth(1)"
+                        class="w-10 h-10 rounded-full bg-transparent hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                        <i class="fas fa-chevron-right text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2 z-20">
+                    <button onclick="openDateSearch()"
+                        class="w-10 h-10 rounded-full bg-white border border-slate-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 flex items-center justify-center text-slate-600 transition shadow-sm"
+                        title="Cari Tanggal">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- VIEW 1: CALENDAR (DEFAULT) -->
+            <div id="calendarViewContainer" class="flex flex-col h-full">
+                <!-- WRAPPER KALENDER (STATIS DI MOBILE) -->
+                <div class="calendar-section-mobile">
+                    <div class="calendar-card" id="swipeArea">
+                        <div class="calendar-grid-container" id="gridContainer">
+                            <div class="calendar-grid" id="calendarGrid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WRAPPER KETERANGAN (SCROLL DI MOBILE) -->
+                <div class="info-section-mobile" id="mobileInfoSection">
+                    <div class="space-y-2 mt-2" id="holidayContainerMobile"></div>
+                    <div class="quote-minimalist mt-8 text-center px-4 pb-8">
+                        <p class="text-xs text-slate-500 italic" id="quoteDisplayMobile">"Kata bijak di sini"</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: NOTES (HIDDEN DEFAULT) -->
+            <div id="notesViewContainer" class="notes-view-container hidden flex-col h-full bg-slate-50 relative">
+
+                <div class="flex-shrink-0 bg-slate-50 shadow-sm z-10 relative">
+                    <div class="notes-tab-group mx-4 mt-4 mb-2">
+                        <div class="notes-tab active" onclick="switchNoteTab('weekly', this)">MINGGUAN</div>
+                        <div class="notes-tab" onclick="switchNoteTab('monthly', this)">BULANAN</div>
+                        <div class="notes-tab" onclick="switchNoteTab('yearly', this)">TAHUNAN</div>
+                    </div>
+
+                    <div class="notes-nav-bar relative flex items-center justify-center py-3 px-4">
+
+                        <div class="flex items-center gap-4">
+                            <button onclick="navNotes(-1)"
+                                class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300 transition">
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </button>
+                            <span id="notesNavLabel"
+                                class="text-sm font-bold text-slate-800 uppercase tracking-wide w-32 text-center">MINGGU
+                                INI</span>
+                            <button onclick="navNotes(1)"
+                                class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300 transition">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </button>
+                        </div>
+
+                        <button onclick="openCreateNoteModal()"
+                            class="hidden lg:flex absolute right-4 w-9 h-9 items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-700 shadow-md transition transform active:scale-95"
+                            title="Buat Catatan Baru" style="background: var(--premium-gradient);">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="notesListContainer" class="flex-1 overflow-y-auto min-h-0 p-4 pb-24 space-y-3 relative z-0">
+                </div>
+
+                <div
+                    class="lg:hidden flex-shrink-0 p-4 bg-white border-t border-slate-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-20 relative">
+                    <button onclick="openCreateNoteModal()"
+                        class="w-full p-3 rounded-xl font-bold text-sm tracking-widest text-white shadow-lg transition hover:opacity-90 hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+                        style="background: var(--premium-gradient);">
+                        <i class="fas fa-plus"></i> BUAT CATATAN
+                    </button>
+                </div>
+
+            </div>
+
+        </main>
+
+        <div class="right-panel-toggle-arrow" id="rightArrowBtn" onclick="toggleRightPanel()">
+            <i class="fas fa-chevron-right"></i>
+        </div>
+
+        <div class="desktop-right-panel" id="rightPanelDesktop">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Agenda Bulan Ini</h3>
+            <div id="holidayContainerDesktop" class="space-y-3 event-list-container flex-1"></div>
+            <div class="mt-auto pt-6 border-t border-slate-200">
+                <i class="fas fa-quote-left text-slate-300 text-lg mb-2 block"></i>
+                <p class="text-sm italic text-slate-600 font-medium leading-relaxed" id="quoteDisplayDesktop">Loading
+                    quote...</p>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <!-- FOOTER (MOBILE ONLY) -->
+    <footer class="footer-rhadzor lg:hidden">
+        <!-- Left Button: View Switcher -->
+        <div id="footerLeftBtn" onclick="toggleNotesView()"
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition cursor-pointer">
+            <i class="fas fa-book text-white text-sm"></i>
+        </div>
+
+        <!-- Center: Branding -->
+        <div class="flex items-center gap-2">
+            <span class="text-sm font-bold tracking-widest text-white uppercase">KALENDER BIZDEV</span>
+        </div>
+
+        <!-- Right Button: Action -->
+        <div id="footerRightBtn" onclick="handleFooterRightAction()"
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition cursor-pointer">
+            <i class="fas fa-search text-white text-sm"></i>
+        </div>
+    </footer>
+    </div>
+
+    <div class="modal-overlay" id="selectorModal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header-line"></div>
+            <h3 id="modalTitle"
+                class="text-center font-bold text-slate-800 mb-4 uppercase text-xs tracking-widest hidden">JUDUL MODAL
+            </h3>
+
+            <div id="modalBodyWrapper" class="flex-1 overflow-hidden flex flex-col">
+                <div id="modalBody" class="w-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="calendar-data.js"></script>
+    <script src="main.js"></script>
+    <div id="calendarHoverTooltip"></div>
+</body>
+
+</html>
