@@ -2243,65 +2243,45 @@ function closeModal(fromHistory = false) {
 }
 
 function setupSwipe() {
-    // --- MODE DEBUG VISUAL ---
-    // Kita buat elemen pembantu untuk cek apakah touch terdeteksi
-    // Hapus elemen debug lama jika ada
-    const oldDebug = document.getElementById('debug-swipe');
-    if (oldDebug) oldDebug.remove();
-
-    // Buat elemen baru (Kotak Merah di Pojok Kiri Atas)
-    const debugEl = document.createElement('div');
-    debugEl.id = 'debug-swipe';
-    debugEl.style.cssText = "position:fixed; top:0; left:0; background:red; color:white; padding:5px; z-index:9999; font-size:10px; pointer-events:none; opacity:0.8;";
-    debugEl.innerText = "SWIPE READY (v6)";
-    document.body.appendChild(debugEl);
-    // -------------------------
+    // Debug Visual (Cek apakah kode baru sudah masuk)
+    const debug = document.createElement('div');
+    debug.style.cssText = "position:fixed; top:0; left:0; z-index:9999; background:red; color:white; font-size:10px; padding:2px;";
+    debug.innerText = "SWIPE V7 (GLOBAL)";
+    document.body.appendChild(debug);
 
     let startX = 0;
     let startY = 0;
 
-    // TARGET: WINDOW (Seluruh Layar)
-    window.addEventListener('touchstart', function(e) {
-        // Cek Modal
-        const modal = document.getElementById('selectorModal');
-        if (modal && modal.classList.contains('active')) {
-            debugEl.innerText = "Modal Aktif (Swipe Mati)";
-            return;
-        }
-
+    // Pasang di WINDOW (Seluruh Layar)
+    window.addEventListener('touchstart', (e) => {
+        // Jangan jalan kalau Modal buka
+        if (document.getElementById('selectorModal').classList.contains('active')) return;
+        
         startX = e.changedTouches[0].screenX;
         startY = e.changedTouches[0].screenY;
-        
-        debugEl.innerText = `Start: ${Math.round(startX)}, ${Math.round(startY)}`;
-    }, { passive: true });
+    }, {passive: true});
 
-    window.addEventListener('touchend', function(e) {
-        // Cek Modal lagi
-        const modal = document.getElementById('selectorModal');
-        if (modal && modal.classList.contains('active')) return;
+    window.addEventListener('touchend', (e) => {
+        // Jangan jalan kalau Modal buka
+        if (document.getElementById('selectorModal').classList.contains('active')) return;
 
         const endX = e.changedTouches[0].screenX;
         const endY = e.changedTouches[0].screenY;
-        
         const diffX = startX - endX;
         const diffY = startY - endY;
 
-        debugEl.innerText = `End: ${Math.round(endX)} | Geser X: ${Math.round(diffX)}`;
-
-        // LOGIKA SWIPE (Jarak minimal 50px)
+        // Logika Swipe (Jarak > 50px & Gerakan mendatar)
         if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
-            debugEl.style.background = "green"; // Ubah jadi hijau kalau swipe sukses
-            debugEl.innerText = "SWIPE DETECTED!";
+            debug.innerText = "GESER TERDETEKSI!";
+            debug.style.background = "green";
             
             if (typeof isNotesView !== 'undefined' && isNotesView) {
-                if (diffX > 0) navNotes(1); 
-                else navNotes(-1);
+                if (diffX > 0) navNotes(1); else navNotes(-1);
             } else {
-                if (diffX > 0) changeMonth(1); 
-                else changeMonth(-1);
+                if (diffX > 0) changeMonth(1); else changeMonth(-1);
             }
         }
-    }, { passive: true });
+    }, {passive: true});
 }
 
 // Fungsi untuk buka-tutup sidebar
