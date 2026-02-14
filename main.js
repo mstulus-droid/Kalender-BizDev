@@ -1472,7 +1472,7 @@ function openSettings() {
     title.textContent = "PENGATURAN";
     body.className = "p-4 space-y-4 w-full"; 
 
-    // --- 0. CEK STATUS NOTIFIKASI ---
+    // --- 0. CEK STATUS NOTIFIKASI (TETAP SAMA) ---
     let notifStatus = 'Belum Diizinkan';
     let notifColor = 'text-slate-500';
     let btnText = 'AKTIFKAN NOTIFIKASI';
@@ -1499,7 +1499,6 @@ function openSettings() {
         }
     }
 
-    // HTML Bagian Notifikasi
     const notifSectionHTML = `
         <div class="p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
             <div class="flex justify-between items-center mb-1">
@@ -1513,15 +1512,14 @@ function openSettings() {
         </div>
     `;
 
-    // --- 1. KOMPONEN TOGGLE BIASA ---
-    // Definisikan fungsi helper di dalam sini agar scope-nya aman
+    // --- 1. KOMPONEN TOGGLE BIASA (TETAP SAMA) ---
     const makeToggle = (label, key) => `
         <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
             <span class="font-bold text-sm text-slate-700">${label}</span>
             <input type="checkbox" class="toggle-switch" ${settings[key] ? 'checked' : ''} onchange="toggleSetting('${key}')">
         </div>`;
 
-    // --- 2. KOMPONEN MODE GELAP ---
+    // --- 2. KOMPONEN MODE GELAP (TETAP SAMA PERSIS) ---
     const darkModeHTML = `
         <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer" onclick="toggleSetting('darkMode')">
             <div class="flex flex-col">
@@ -1539,7 +1537,7 @@ function openSettings() {
         </div>
     `;
 
-    // --- 3. KOMPONEN TEMA WARNA ---
+    // --- 3. KOMPONEN TEMA WARNA (TETAP SAMA) ---
     let themeButtonsHTML = '';
     themes.forEach((t, i) => {
         const isActive = i === currentThemeIndex;
@@ -1559,7 +1557,7 @@ function openSettings() {
             </div>
         </div>`;
 
-    // --- 4. KOMPONEN TRANSISI ---
+    // --- 4. KOMPONEN TRANSISI (TETAP SAMA) ---
     const transitionHTML = `
         <div class="pt-2 mt-2 px-1">
             <span class="block font-bold text-[0.65rem] text-slate-400 uppercase tracking-widest mb-2">Efek Transisi</span>
@@ -1573,7 +1571,39 @@ function openSettings() {
             </select>
         </div>`;
 
-    // --- 5. KOMPONEN BACKUP ---
+    // --- 5. KOMPONEN INSTALL APP (BARU DITAMBAHKAN DI SINI) ---
+    // Logika: Cek apakah sudah install atau belum
+    let installHTML = '';
+    const appInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    if (appInstalled) {
+        // Tampilan jika SUDAH install
+        installHTML = `
+            <div class="bg-green-50 border border-green-100 rounded-xl p-3 mt-4 flex items-center gap-3">
+                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-sm text-green-800">Aplikasi Terpasang</span>
+                    <span class="text-[0.65rem] text-green-600">Versi PWA Aktif</span>
+                </div>
+            </div>`;
+    } else {
+        // Tampilan jika BELUM install (Tombol Hitam)
+        installHTML = `
+            <div class="bg-slate-900 text-white rounded-xl p-4 mt-4 shadow-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold text-sm"><i class="fas fa-download mr-2"></i>Install Aplikasi</span>
+                    <span class="text-[0.65rem] bg-white/20 px-2 py-0.5 rounded text-white">Gratis</span>
+                </div>
+                <p class="text-[0.7rem] text-slate-300 mb-3">Pasang agar lebih cepat & offline.</p>
+                <button onclick="triggerInstallFromSettings()" class="w-full bg-white text-slate-900 py-2 rounded-lg text-xs font-bold hover:bg-slate-100 transition shadow-sm">
+                    INSTALL SEKARANG
+                </button>
+            </div>`;
+    }
+
+    // --- 6. KOMPONEN BACKUP (TETAP SAMA) ---
     const backupHTML = `
         <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-6 mb-4">
             <span class="block font-bold text-sm text-blue-800 mb-2">Cadangkan Data</span>
@@ -1587,18 +1617,21 @@ function openSettings() {
                     <input type="file" class="hidden" accept=".json" onchange="importData(this)">
                 </label>
             </div>
+            <div class="text-center mt-3">
+                 <span class="text-[0.65rem] text-blue-400/70 font-mono">Versi 4.2 • Offline Ready</span>
+            </div>
         </div>`;
 
-    // --- PENYUSUNAN AKHIR (PERBAIKAN) ---
-    // Di sini tadi errornya. Sekarang sudah diperbaiki variabelnya.
+    // --- PENYUSUNAN AKHIR ---
     let finalHTML =
-        notifSectionHTML +     // <--- Variabel sudah benar
+        notifSectionHTML +
         darkModeHTML +
         makeToggle('Kalender Hijriah', 'showHijri') +
         makeToggle('Hari Pasaran', 'showPasaran') +
         makeToggle('Hari Peringatan', 'showObservances') +
         themeSectionHTML +
         transitionHTML +
+        installHTML + // <--- SELIPKAN MENU INSTALL DI SINI
         backupHTML + 
         '<div class="h-6"></div>';
 
@@ -2556,90 +2589,56 @@ function markAsNotified(dateKey, noteId) {
         }
     }
 }
-// --- SISTEM INSTALL PWA (AUTO DETECT) ---
+// --- SISTEM INSTALL PWA (SILENT MODE) ---
 
-let deferredPrompt; // Untuk menyimpan event install Chrome/Android
-const pwaBanner = document.getElementById('pwaInstallBanner');
+let deferredPrompt; // Variabel penyimpan event install
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const iosModal = document.getElementById('iosInstallModal');
 
-// 1. Cek apakah aplikasi sudah diinstall (Standalone Mode)
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-// 2. Deteksi apakah user menggunakan iOS (iPhone/iPad)
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-// --- LOGIKA UTAMA ---
-window.addEventListener('load', () => {
-    // Jika sudah diinstall, JANGAN tampilkan apa-apa
-    if (isStandalone) {
-        console.log('Aplikasi berjalan dalam mode PWA/App.');
-        return; 
-    }
-
-    // Jika di iOS (Browser Safari), tampilkan banner khusus iOS
-    if (isIOS) {
-        // Tampilkan banner setelah 3 detik
-        setTimeout(() => {
-            // Cek apakah user pernah menutup banner sebelumnya (agar tidak mengganggu)
-            if (!localStorage.getItem('pwaBannerDismissed')) {
-                pwaBanner.classList.remove('hidden');
-                pwaBanner.classList.add('flex');
-            }
-        }, 3000);
-    }
-});
-
-// 3. Event Listener untuk Chrome/Android/Edge (BeforeInstallPrompt)
+// 1. Event Listener Chrome/Android (Simpan event, jangan munculkan banner)
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Cegah browser menampilkan prompt bawaan yang membosankan
     e.preventDefault();
-    // Simpan event agar bisa dipanggil nanti lewat tombol kita
-    deferredPrompt = e;
-    
-    // Tampilkan Banner Kita
-    if (!localStorage.getItem('pwaBannerDismissed')) {
-        pwaBanner.classList.remove('hidden');
-        pwaBanner.classList.add('flex');
-    }
+    deferredPrompt = e; // Simpan event ke variabel global
+    // Kita tidak memanggil UI apa-apa di sini (Silent)
 });
 
-// 4. Fungsi saat tombol INSTALL diklik
-function triggerInstall() {
+// 2. Fungsi Eksekusi Install (Dipanggil dari Tombol Settings)
+function triggerInstallFromSettings() {
+    if (isStandalone) {
+        alert('Aplikasi sudah terinstall.');
+        return;
+    }
+
     if (isIOS) {
-        // Jika iOS: Buka Modal Panduan
-        pwaBanner.classList.add('hidden'); // Sembunyikan banner
-        iosModal.classList.remove('hidden'); // Munculkan modal panduan
-        iosModal.classList.add('flex');
+        // Khusus iOS: Buka Modal Panduan
+        if(iosModal) {
+            iosModal.classList.remove('hidden');
+            iosModal.classList.add('flex');
+            // Tutup modal settings biar fokus ke panduan
+            closeModal();
+        }
     } else if (deferredPrompt) {
-        // Jika Android/PC: Panggil Prompt Asli
+        // Android/PC: Panggil Prompt Asli
         deferredPrompt.prompt();
         
-        // Tunggu respon user
         deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
                 console.log('User menerima instalasi');
-                pwaBanner.classList.add('hidden'); // Sembunyikan banner selamanya
-            } else {
-                console.log('User menolak instalasi');
+                deferredPrompt = null;
+                openSettings(); // Refresh halaman settings
             }
-            deferredPrompt = null;
         });
     } else {
-        // Fallback jika tidak support (jarang terjadi di browser modern)
-        alert('Silakan gunakan menu browser > "Install App" atau "Add to Home Screen"');
+        // Fallback jika browser tidak support PWA otomatis
+        alert('Untuk menginstall: Buka menu browser (titik tiga) > Pilih "Install App" atau "Add to Home Screen".');
     }
 }
 
-// 5. Fungsi Tutup Banner (Dismiss)
-function dismissInstallBanner() {
-    pwaBanner.classList.add('hidden');
-    pwaBanner.classList.remove('flex');
-    // Simpan di memori HP agar banner tidak muncul lagi (misal: selama sesi ini)
-    localStorage.setItem('pwaBannerDismissed', 'true');
-}
-
-// 6. Fungsi Tutup Modal iOS
+// 3. Fungsi Tutup Modal iOS
 function closeIosModal() {
-    iosModal.classList.remove('flex');
-    iosModal.classList.add('hidden');
+    if(iosModal) {
+        iosModal.classList.remove('flex');
+        iosModal.classList.add('hidden');
+    }
 }
