@@ -1672,22 +1672,179 @@ function selectHighlightedYear() {
     if (activeEl) { currentDate.setFullYear(parseInt(activeEl.dataset.value)); renderCalendar(); closeModal(); }
 }
 
+// --- FITUR PENCARIAN BARU (TEKS & TANGGAL) ---
+
 function openDateSearch() {
     const overlay = document.getElementById('selectorModal');
     const body = document.getElementById('modalBody');
     const title = document.getElementById('modalTitle');
-    // REMOVED pos-top agar nempelBAWAH (sesuai request)
-    title.classList.remove('hidden'); title.textContent = "CARI TANGGAL";
-    body.className = "w-full";
-    const curM = currentDate.getMonth(); const curY = currentDate.getFullYear();
-    body.innerHTML = `<div class="scroller-wrapper"><div class="selection-indicator"></div><div class="scroller-col" id="monthScroller"></div><div class="scroller-col" id="yearScroller"></div></div><button onclick="jumpToSelectedMonthYear()" class="w-full mt-4 bg-slate-900 text-white p-3 rounded-xl font-bold text-xs tracking-wider mb-8">LIHAT KALENDER</button>`;
-    const mList = document.getElementById('monthScroller'); const yList = document.getElementById('yearScroller');
+
+    title.classList.remove('hidden');
+    title.textContent = "PENCARIAN";
+    body.className = "w-full p-2";
+
+    // 1. Render Tampilan Awal (Input Search)
+    body.innerHTML = `
+        <div class="relative mb-4">
+            <input type="text" id="searchInput" placeholder="Cari catatan (cth: Rapat, Tagihan)..." 
+                class="w-full p-3 pl-10 rounded-xl border border-slate-200 bg-slate-50 font-bold text-sm focus:outline-none focus:border-blue-500 transition shadow-inner text-slate-700"
+                autocomplete="off">
+            <i class="fas fa-search absolute left-3 top-3.5 text-slate-400"></i>
+        </div>
+
+        <div id="searchResults" class="min-h-[150px] max-h-[60vh] overflow-y-auto space-y-2 mb-4 custom-scrollbar">
+            <div class="flex flex-col items-center justify-center h-32 opacity-50">
+                <i class="fas fa-search text-3xl mb-2 text-slate-300"></i>
+                <p class="text-xs text-slate-400">Ketik kata kunci di atas</p>
+            </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-3">
+            <button onclick="switchToDateScroller()" class="w-full bg-slate-100 text-slate-600 p-3 rounded-xl font-bold text-xs tracking-wider hover:bg-slate-200 transition flex items-center justify-center gap-2">
+                <i class="fas fa-calendar-alt"></i> ATAU PILIH TANGGAL MANUAL
+            </button>
+        </div>
+    `;
+
+    openModal('pos-top');
+
+    // 2. Logic Pencarian Real-time
+    const input = document.getElementById('searchInput');
+    input.focus();
+    
+    input.oninput = function() {
+        const keyword = this.value.toLowerCase().trim();
+        const container = document.getElementById('searchResults');
+        
+        if (!keyword) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-32 opacity-50">
+                    <i class="fas fa-search text-3xl mb-2 text-slate-300"></i>
+                    <p class="text-xs text-slate-400">Ketik kata kunci di atas</p>
+                </div>`;
+            return;
+        }
+
+        const notes = getStoredNotes(); // Ambil semua data
+        let results = [];
+
+        // Loop semua tanggal dan cari text yang cocok
+        Object.keys(notes).forEach(dateKey => {
+            const dayNotes = notes[dateKey];
+            dayNotes.forEach(note => {
+                if (note.text.toLowerCase().includes(keyword)) {
+                    results.push({
+                        dateKey: dateKey,
+                        ...note
+                    });
+                }
+            });
+        });
+
+        // Urutkan hasil (terbaru di atas)
+        results.sort((a, b) => new Date(b.dateKey) - new Date(a.dateKey));
+
+        // Render Hasil
+        if (results.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-8 text-slate-400">
+                    <p class="text-xs font-bold">Tidak ditemukan catatan "${keyword}"</p>
+                </div>`;
+        } else {
+            container.innerHTML = '';
+            results.forEach(res => {
+                const [y, m, d] = res.dateKey.split('-').map(Number);
+                const dateObj = new Date(y, m, d);
+                const dateStr = `${d} ${monthNames[m]} ${y}`;
+                
+                // Tentukan warna ikon berdasarkan kategori
+                let iconClass = 'fa-sticky-note text-emerald-500';
+                if (res.category === 'kerja') iconClass = 'fa-briefcase text-blue-500';
+                else if (res.category === 'penting') iconClass = 'fa-exclamation-circle text-red-500';
+                else if (res.category === 'ide') iconClass = 'fa-lightbulb text-amber-500';
+
+                const el = document.createElement('div');
+                el.className = 'bg-white p-3 rounded-xl border border-slate-100 shadow-sm cursor-pointer hover:bg-slate-50 transition active:scale-95';
+                el.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-wider">${dateStr}</span>
+                        ${res.time ? `<span class="text-[0.6rem] bg-slate-100 text-slate-500 px-1.5 rounded font-bold">${res.time}</span>` : ''}
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <i class="fas ${iconClass} mt-1 text-xs"></i>
+                        <p class="text-sm font-medium text-slate-700 line-clamp-2">${highlightKeyword(res.text, keyword)}</p>
+                    </div>
+                `;
+                
+                // Saat diklik, buka detail tanggal tersebut
+                el.onclick = () => {
+                    // Logic buka detail (copas logic dari renderCalendar)
+                    const h = getHijriDate(dateObj);
+                    const dayName = dayNames[dateObj.getDay()];
+                    
+                    // Hitung pasaran manual (copas logic)
+                    const refDate = new Date(2026, 1, 1);
+                    const diff = Math.floor((dateObj - refDate) / 86400000);
+                    let pasaranIdx = (3 + (diff % 5)) % 5;
+                    if (pasaranIdx < 0) pasaranIdx += 5;
+                    const pasaranName = pasaranArr[pasaranIdx];
+
+                    // Tutup modal search dulu
+                    closeModal();
+
+                    // Pindah kalender ke bulan target biar user tidak bingung
+                    currentDate = new Date(y, m, 1);
+                    renderCalendar();
+
+                    // Buka detail popup
+                    setTimeout(() => {
+                        showDetail(d, m, y, dayName, pasaranName, h.day, hijriMonths[h.month], h.year, null, null, null, (dateObj.getDay()===0), null, null, h.isHardcoded);
+                    }, 300);
+                };
+                container.appendChild(el);
+            });
+        }
+    }
+}
+
+// Helper untuk menebalkan teks yang dicari
+function highlightKeyword(text, keyword) {
+    const regex = new RegExp(`(${keyword})`, 'gi');
+    return text.replace(regex, '<span class="bg-yellow-200 text-slate-900 px-0.5 rounded">$1</span>');
+}
+
+// Fungsi untuk beralih ke Mode Scroller Tanggal (Fitur Lama)
+function switchToDateScroller() {
+    const body = document.getElementById('modalBody');
+    const curM = currentDate.getMonth(); 
+    const curY = currentDate.getFullYear();
+    
+    // Render ulang modal body dengan scroller lama
+    body.innerHTML = `
+        <div class="scroller-wrapper">
+            <div class="selection-indicator"></div>
+            <div class="scroller-col" id="monthScroller"></div>
+            <div class="scroller-col" id="yearScroller"></div>
+        </div>
+        <button onclick="jumpToSelectedMonthYear()" class="w-full mt-4 bg-slate-900 text-white p-3 rounded-xl font-bold text-xs tracking-wider mb-2">LIHAT KALENDER</button>
+        <button onclick="openDateSearch()" class="w-full text-slate-400 p-2 text-xs font-bold hover:text-slate-600 transition">KEMBALI KE PENCARIAN TEKS</button>
+    `;
+
+    // Re-init Scroller logic
+    const mList = document.getElementById('monthScroller'); 
+    const yList = document.getElementById('yearScroller');
+    
     monthNames.forEach((m, i) => { mList.appendChild(createScrollerItem(m, i, i === curM)); });
     for (let y = curY - 50; y <= curY + 50; y++) { yList.appendChild(createScrollerItem(y, y, y === curY)); }
-    openModal(''); setupScrollSnapObserver('monthScroller'); setupScrollSnapObserver('yearScroller');
+    
+    setupScrollSnapObserver('monthScroller'); 
+    setupScrollSnapObserver('yearScroller');
+    
     setTimeout(() => {
-        const activeM = mList.querySelector('.active'); const activeY = yList.querySelector('.active');
-        if (activeM) activeM.scrollIntoView({ block: 'center' }); if (activeY) activeY.scrollIntoView({ block: 'center' });
+        const activeM = mList.querySelector('.active'); 
+        const activeY = yList.querySelector('.active');
+        if (activeM) activeM.scrollIntoView({ block: 'center' }); 
+        if (activeY) activeY.scrollIntoView({ block: 'center' });
     }, 100);
 }
 
