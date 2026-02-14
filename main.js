@@ -2535,3 +2535,90 @@ function markAsNotified(dateKey, noteId) {
         }
     }
 }
+// --- SISTEM INSTALL PWA (AUTO DETECT) ---
+
+let deferredPrompt; // Untuk menyimpan event install Chrome/Android
+const pwaBanner = document.getElementById('pwaInstallBanner');
+const iosModal = document.getElementById('iosInstallModal');
+
+// 1. Cek apakah aplikasi sudah diinstall (Standalone Mode)
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+// 2. Deteksi apakah user menggunakan iOS (iPhone/iPad)
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+// --- LOGIKA UTAMA ---
+window.addEventListener('load', () => {
+    // Jika sudah diinstall, JANGAN tampilkan apa-apa
+    if (isStandalone) {
+        console.log('Aplikasi berjalan dalam mode PWA/App.');
+        return; 
+    }
+
+    // Jika di iOS (Browser Safari), tampilkan banner khusus iOS
+    if (isIOS) {
+        // Tampilkan banner setelah 3 detik
+        setTimeout(() => {
+            // Cek apakah user pernah menutup banner sebelumnya (agar tidak mengganggu)
+            if (!localStorage.getItem('pwaBannerDismissed')) {
+                pwaBanner.classList.remove('hidden');
+                pwaBanner.classList.add('flex');
+            }
+        }, 3000);
+    }
+});
+
+// 3. Event Listener untuk Chrome/Android/Edge (BeforeInstallPrompt)
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Cegah browser menampilkan prompt bawaan yang membosankan
+    e.preventDefault();
+    // Simpan event agar bisa dipanggil nanti lewat tombol kita
+    deferredPrompt = e;
+    
+    // Tampilkan Banner Kita
+    if (!localStorage.getItem('pwaBannerDismissed')) {
+        pwaBanner.classList.remove('hidden');
+        pwaBanner.classList.add('flex');
+    }
+});
+
+// 4. Fungsi saat tombol INSTALL diklik
+function triggerInstall() {
+    if (isIOS) {
+        // Jika iOS: Buka Modal Panduan
+        pwaBanner.classList.add('hidden'); // Sembunyikan banner
+        iosModal.classList.remove('hidden'); // Munculkan modal panduan
+        iosModal.classList.add('flex');
+    } else if (deferredPrompt) {
+        // Jika Android/PC: Panggil Prompt Asli
+        deferredPrompt.prompt();
+        
+        // Tunggu respon user
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User menerima instalasi');
+                pwaBanner.classList.add('hidden'); // Sembunyikan banner selamanya
+            } else {
+                console.log('User menolak instalasi');
+            }
+            deferredPrompt = null;
+        });
+    } else {
+        // Fallback jika tidak support (jarang terjadi di browser modern)
+        alert('Silakan gunakan menu browser > "Install App" atau "Add to Home Screen"');
+    }
+}
+
+// 5. Fungsi Tutup Banner (Dismiss)
+function dismissInstallBanner() {
+    pwaBanner.classList.add('hidden');
+    pwaBanner.classList.remove('flex');
+    // Simpan di memori HP agar banner tidak muncul lagi (misal: selama sesi ini)
+    localStorage.setItem('pwaBannerDismissed', 'true');
+}
+
+// 6. Fungsi Tutup Modal iOS
+function closeIosModal() {
+    iosModal.classList.remove('flex');
+    iosModal.classList.add('hidden');
+}
