@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bizdev-cal-v6-DEBUG-MODE';
+const CACHE_NAME = 'bizdev-cal-v4-webp';
 const ASSETS = [
     './',
     './index.html',
@@ -42,28 +42,6 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request).then((response) => {
             return response || fetch(event.request);
-        })
-    );
-});
-
-// Event saat notifikasi diklik
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close(); // Tutup notifikasi
-
-    event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-            // 1. Jika aplikasi sudah terbuka, fokuskan ke sana
-            if (clientList.length > 0) {
-                let client = clientList[0];
-                for (let i = 0; i < clientList.length; i++) {
-                    if (clientList[i].focused) {
-                        client = clientList[i];
-                    }
-                }
-                return client.focus();
-            }
-            // 2. Jika belum terbuka, buka baru (sesuaikan URL dengan path lokal/hostingmu)
-            return clients.openWindow('./'); 
         })
     );
 });

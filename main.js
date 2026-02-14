@@ -72,7 +72,6 @@ function init() {
     // 4. Render komponen utama
     renderCalendar();
     updateQuote();
-    updateClock();
 
     // 5. Setup History & Back Button (Insight User)
     // Kita paksa aplikasi mulai dari hash #calendar sebagai base entry.
@@ -94,7 +93,6 @@ function init() {
         const transSelect = document.getElementById('transitionSelect');
         if (transSelect) transSelect.value = settings.transitionType;
     }, 100);
-    startAlarmSystem();
 }
 
 function syncSettingsUI() {
@@ -1457,85 +1455,42 @@ function changeMonth(dir, targetDate = null) {
     }, 250);
 }
 
-// --- FUNGSI PENGATURAN (SETTINGS) - VERSI FIX ---
-
 function openSettings() {
     const overlay = document.getElementById('selectorModal');
     const body = document.getElementById('modalBody');
     const title = document.getElementById('modalTitle');
 
-    overlay.classList.remove('pos-top');
     overlay.classList.add('pos-center');
     title.classList.remove('hidden');
     title.textContent = "PENGATURAN";
-    body.className = "p-4 space-y-4 w-full"; 
+    body.className = "p-4 space-y-4"; // Padding dan spacing antar elemen
 
-    // --- 0. CEK STATUS NOTIFIKASI (TETAP SAMA) ---
-    let notifStatus = 'Belum Diizinkan';
-    let notifColor = 'text-slate-500';
-    let btnText = 'AKTIFKAN NOTIFIKASI';
-    let btnClass = 'bg-blue-100 text-blue-600';
-    let notifDesc = 'Diperlukan agar alarm jadwal berbunyi.';
-
-    if (!('Notification' in window)) {
-        notifStatus = 'Tidak Didukung';
-        btnText = 'BROWSER TIDAK SUPPORT';
-        btnClass = 'bg-gray-100 text-gray-400 cursor-not-allowed';
-    } else {
-        if (Notification.permission === 'granted') {
-            notifStatus = 'Sudah Aktif ✅';
-            notifColor = 'text-green-600';
-            btnText = 'TES NOTIFIKASI (BUNYI)';
-            btnClass = 'bg-green-100 text-green-700 hover:bg-green-200';
-            notifDesc = 'Pastikan tab ini tetap terbuka (boleh minimize).';
-        } else if (Notification.permission === 'denied') {
-            notifStatus = 'Diblokir Browser ❌';
-            notifColor = 'text-red-500';
-            btnText = 'LIHAT CARA BUKA BLOKIR';
-            btnClass = 'bg-red-100 text-red-600 hover:bg-red-200';
-            notifDesc = 'Anda harus mengizinkan lewat ikon gembok URL.';
-        }
-    }
-
-    const notifSectionHTML = `
-        <div class="p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <div class="flex justify-between items-center mb-1">
-                <span class="font-bold text-sm text-slate-700"><i class="fas fa-bell mr-2 text-slate-400"></i>Alarm</span>
-                <span class="text-[0.65rem] font-bold uppercase tracking-wider ${notifColor}">${notifStatus}</span>
-            </div>
-            <p class="text-[0.7rem] text-slate-500 mb-3 leading-snug">${notifDesc}</p>
-            <button onclick="handleNotificationClick()" class="w-full py-2 rounded-lg text-xs font-bold ${btnClass} transition">
-                ${btnText}
-            </button>
-        </div>
-    `;
-
-    // --- 1. KOMPONEN TOGGLE BIASA (TETAP SAMA) ---
+    // --- 1. KOMPONEN TOGGLE BIASA ---
     const makeToggle = (label, key) => `
-        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
-            <span class="font-bold text-sm text-slate-700">${label}</span>
-            <input type="checkbox" class="toggle-switch" ${settings[key] ? 'checked' : ''} onchange="toggleSetting('${key}')">
-        </div>`;
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <span class="font-bold text-sm text-slate-700">${label}</span>
+                    <input type="checkbox" class="toggle-switch" ${settings[key] ? 'checked' : ''} onchange="toggleSetting('${key}')">
+                </div>`;
 
-    // --- 2. KOMPONEN MODE GELAP (TETAP SAMA PERSIS) ---
+    // --- 2. KOMPONEN MODE GELAP (ATRAKTIF) ---
     const darkModeHTML = `
-        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer" onclick="toggleSetting('darkMode')">
-            <div class="flex flex-col">
-                <span class="font-bold text-sm text-slate-700">Mode Tampilan</span>
-                <span class="text-[0.65rem] text-slate-400 font-bold uppercase tracking-wider">${settings.darkMode ? 'Mode Gelap (Malam)' : 'Mode Terang (Siang)'}</span>
-            </div>
-            
-            <div class="theme-toggle-pill">
-                <i class="fas fa-cloud toggle-bg-icon icon-cloud"></i>
-                <i class="fas fa-star toggle-bg-icon icon-stars text-[0.5rem]"></i>
-                <div class="theme-toggle-circle">
-                    <i class="fas ${settings.darkMode ? 'fa-moon' : 'fa-sun'} theme-toggle-icon"></i>
+            <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer" onclick="toggleSetting('darkMode')">
+                <div class="flex flex-col">
+                    <span class="font-bold text-sm text-slate-700">Mode Tampilan</span>
+                    <span class="text-[0.65rem] text-slate-400 font-bold uppercase tracking-wider">${settings.darkMode ? 'Mode Gelap (Malam)' : 'Mode Terang (Siang)'}</span>
+                </div>
+                
+                <div class="theme-toggle-pill">
+                    <i class="fas fa-cloud toggle-bg-icon icon-cloud"></i>
+                    <i class="fas fa-star toggle-bg-icon icon-stars text-[0.5rem]"></i>
+                    <div class="theme-toggle-circle">
+                        <i class="fas ${settings.darkMode ? 'fa-moon' : 'fa-sun'} theme-toggle-icon"></i>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+            `;
 
-    // --- 3. KOMPONEN TEMA WARNA (TETAP SAMA) ---
+    // --- 3. KOMPONEN TEMA WARNA ---
     let themeButtonsHTML = '';
     themes.forEach((t, i) => {
         const isActive = i === currentThemeIndex;
@@ -1544,122 +1499,60 @@ function openSettings() {
     });
 
     const themeSectionHTML = `
-        <div class="bg-slate-50 rounded-xl p-4 mt-2 border border-slate-100">
-            <span class="block font-bold text-sm text-slate-700 mb-4 text-center">Pilih Tema Warna</span>
-            <div class="grid grid-cols-4 gap-y-4 gap-x-2 justify-items-center mb-2">
-                ${themeButtonsHTML}
-            </div>
-            <div class="text-center mt-4 pt-2 border-t border-slate-200">
-                <span class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Tema Aktif</span>
-                <div class="text-xs font-bold text-slate-700 uppercase tracking-wider mt-1" id="themeNameModal">${themes[currentThemeIndex].name}</div>
-            </div>
-        </div>`;
+            <div class="bg-slate-50 rounded-xl p-4 mt-4 border border-slate-100">
+                <span class="block font-bold text-sm text-slate-700 mb-4 text-center">Pilih Tema Warna</span>
+                <div class="grid grid-cols-4 gap-y-4 gap-x-2 justify-items-center mb-2">
+                    ${themeButtonsHTML}
+                </div>
+                <div class="text-center mt-4 pt-2 border-t border-slate-200">
+                    <span class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Tema Aktif</span>
+                    <div class="text-xs font-bold text-slate-700 uppercase tracking-wider mt-1" id="themeNameModal">${themes[currentThemeIndex].name}</div>
+                </div>
+            </div>`;
 
-    // --- 4. KOMPONEN TRANSISI (TETAP SAMA) ---
+    // --- 4. KOMPONEN TRANSISI ---
     const transitionHTML = `
-        <div class="pt-2 mt-2 px-1">
-            <span class="block font-bold text-[0.65rem] text-slate-400 uppercase tracking-widest mb-2">Efek Transisi</span>
-            <select class="premium-select w-full" onchange="updateTransition(this.value)">
-                <option value="none" ${settings.transitionType === 'none' ? 'selected' : ''}>None (Instant)</option>
-                <option value="slide" ${settings.transitionType === 'slide' ? 'selected' : ''}>Slide</option>
-                <option value="cube" ${settings.transitionType === 'cube' ? 'selected' : ''}>Cube Flip</option>
-                <option value="fade" ${settings.transitionType === 'fade' ? 'selected' : ''}>Fade</option>
-                <option value="zoom" ${settings.transitionType === 'zoom' ? 'selected' : ''}>Zoom</option>
-                <option value="flip" ${settings.transitionType === 'flip' ? 'selected' : ''}>Flip Card</option>
-            </select>
-        </div>`;
-
-    // --- 5. KOMPONEN INSTALL APP (BARU DITAMBAHKAN DI SINI) ---
-    // Logika: Cek apakah sudah install atau belum
-    let installHTML = '';
-    const appInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-    if (appInstalled) {
-        // Tampilan jika SUDAH install
-        installHTML = `
-            <div class="bg-green-50 border border-green-100 rounded-xl p-3 mt-4 flex items-center gap-3">
-                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm">
-                    <i class="fas fa-check"></i>
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-bold text-sm text-green-800">Aplikasi Terpasang</span>
-                    <span class="text-[0.65rem] text-green-600">Versi PWA Aktif</span>
-                </div>
+            <div class="pt-2 mt-2">
+                <span class="block font-bold text-[0.65rem] text-slate-400 uppercase tracking-widest mb-2 px-1">Efek Transisi</span>
+                <select class="premium-select" onchange="updateTransition(this.value)">
+                    <option value="none" ${settings.transitionType === 'none' ? 'selected' : ''}>None (Instant)</option>
+                    <option value="slide" ${settings.transitionType === 'slide' ? 'selected' : ''}>Slide</option>
+                    <option value="cube" ${settings.transitionType === 'cube' ? 'selected' : ''}>Cube Flip</option>
+                    <option value="fade" ${settings.transitionType === 'fade' ? 'selected' : ''}>Fade</option>
+                    <option value="zoom" ${settings.transitionType === 'zoom' ? 'selected' : ''}>Zoom</option>
+                    <option value="flip" ${settings.transitionType === 'flip' ? 'selected' : ''}>Flip Card</option>
+                </select>
             </div>`;
-    } else {
-        // Tampilan jika BELUM install (Tombol Hitam)
-        installHTML = `
-            <div class="bg-slate-900 text-white rounded-xl p-4 mt-4 shadow-lg">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="font-bold text-sm"><i class="fas fa-download mr-2"></i>Install Aplikasi</span>
-                    <span class="text-[0.65rem] bg-white/20 px-2 py-0.5 rounded text-white">Gratis</span>
-                </div>
-                <p class="text-[0.7rem] text-slate-300 mb-3">Pasang agar lebih cepat & offline.</p>
-                <button onclick="triggerInstallFromSettings()" class="w-full bg-white text-slate-900 py-2 rounded-lg text-xs font-bold hover:bg-slate-100 transition shadow-sm">
-                    INSTALL SEKARANG
-                </button>
-            </div>`;
-    }
 
-    // --- 6. KOMPONEN BACKUP (TETAP SAMA) ---
     const backupHTML = `
-        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-6 mb-4">
-            <span class="block font-bold text-sm text-blue-800 mb-2">Cadangkan Data</span>
-            <p class="text-xs text-blue-600 mb-3 leading-relaxed">Simpan data catatan agar aman atau pulihkan dari file sebelumnya.</p>
-            <div class="flex gap-2">
-                <button onclick="exportData()" class="flex-1 bg-white border border-blue-200 text-blue-700 py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-50 transition flex items-center justify-center gap-2">
-                    <i class="fas fa-download"></i> BACKUP
-                </button>
-                <label class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-700 transition text-center cursor-pointer flex items-center justify-center gap-2">
-                    <i class="fas fa-upload"></i> RESTORE
-                    <input type="file" class="hidden" accept=".json" onchange="importData(this)">
-                </label>
-            </div>
-            <div class="text-center mt-3">
-                 <span class="text-[0.65rem] text-blue-400/70 font-mono">Versi 4.2 • Offline Ready</span>
-            </div>
-        </div>`;
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-6 mb-4">
+                <span class="block font-bold text-sm text-blue-800 mb-2">Cadangkan Data</span>
+                <p class="text-xs text-blue-600 mb-3 leading-relaxed">Simpan data catatan agar aman atau pulihkan dari file sebelumnya.</p>
+                <div class="flex gap-2">
+                    <button onclick="exportData()" class="flex-1 bg-white border border-blue-200 text-blue-700 py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-50 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-download"></i> BACKUP
+                    </button>
+                    <label class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-700 transition text-center cursor-pointer flex items-center justify-center gap-2">
+                        <i class="fas fa-upload"></i> RESTORE
+                        <input type="file" class="hidden" accept=".json" onchange="importData(this)">
+                    </label>
+                </div>
+            </div>`;
 
     // --- PENYUSUNAN AKHIR ---
+    // Urutan: Dark Mode -> Toggle Lain -> Tema Warna -> Transisi -> Backup
     let finalHTML =
-        notifSectionHTML +
         darkModeHTML +
         makeToggle('Kalender Hijriah', 'showHijri') +
         makeToggle('Hari Pasaran', 'showPasaran') +
         makeToggle('Hari Peringatan', 'showObservances') +
         themeSectionHTML +
         transitionHTML +
-        installHTML + // <--- SELIPKAN MENU INSTALL DI SINI
-        backupHTML + 
-        '<div class="h-6"></div>';
+        backupHTML + // <--- Posisi Baru (Paling Bawah)
+        '<div class="h-6"></div>'; // Spacer kecil di ujung bawah
 
     body.innerHTML = finalHTML;
     openModal('pos-center');
-}
-
-// Pastikan fungsi ini juga ada di main.js (di luar openSettings)
-function handleNotificationClick() {
-    if (!('Notification' in window)) return;
-
-    if (Notification.permission === 'granted') {
-        new Notification('Tes Notifikasi Berhasil! 🔔', {
-            body: 'Sistem alarm Anda berfungsi normal.',
-            icon: 'icons/icon_192.png',
-            vibrate: [200, 100, 200]
-        });
-    } else if (Notification.permission === 'denied') {
-        alert('⚠️ AKSES DIBLOKIR BROWSER\n\nCara memperbaiki:\n1. Klik ikon Gembok/Pengaturan di sebelah URL (alamat web).\n2. Pilih "Permissions" atau "Izin".\n3. Cari "Notifications" dan pilih "Allow/Izinkan".\n4. Atau klik "Reset Permissions".\n5. Refresh halaman ini.');
-    } else {
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                new Notification('Hore! Notifikasi Aktif 🔔', {
-                    body: 'Kami akan mengingatkan jadwal Anda.',
-                    icon: 'icons/icon_192.png'
-                });
-                openSettings(); // Refresh tampilan
-            }
-        });
-    }
 }
 
 // --- UPDATE FUNGSI TOGGLE SETTING ---
@@ -2243,53 +2136,26 @@ function closeModal(fromHistory = false) {
 }
 
 function setupSwipe() {
-    let startX = 0;
-    let startY = 0;
+    // 1. Swipe untuk Kalender (Ganti Bulan)
+    let startX = 0; const area = document.getElementById('swipeArea');
+    if (area) {
+        area.addEventListener('touchstart', e => { startX = e.changedTouches[0].screenX; }, { passive: true });
+        area.addEventListener('touchend', e => {
+            const endX = e.changedTouches[0].screenX; if (endX < startX - 70) changeMonth(1); if (endX > startX + 70) changeMonth(-1);
+        }, { passive: true });
+    }
 
-    // 1. PASANG SENSOR DI JENDELA UTAMA (WINDOW)
-    // Ini kuncinya: Agar swipe jalan dimanapun jari menyentuh layar
-    window.addEventListener('touchstart', (e) => {
-        // PENGAMAN 1: Jangan swipe jika Modal/Popup sedang terbuka
-        const modal = document.getElementById('selectorModal');
-        if (modal && modal.classList.contains('active')) return;
-
-        // PENGAMAN 2: Jangan swipe jika sedang scroll area tahun/bulan (di dalam scroller)
-        if (e.target.closest('.scroller-col')) return;
-
-        startX = e.changedTouches[0].screenX;
-        startY = e.changedTouches[0].screenY;
-    }, { passive: true });
-
-    window.addEventListener('touchend', (e) => {
-        // PENGAMAN: Cek Modal lagi
-        const modal = document.getElementById('selectorModal');
-        if (modal && modal.classList.contains('active')) return;
-
-        const endX = e.changedTouches[0].screenX;
-        const endY = e.changedTouches[0].screenY;
-        
-        const diffX = startX - endX; // Positif = Geser Kiri (Next), Negatif = Geser Kanan (Prev)
-        const diffY = startY - endY;
-
-        // LOGIKA SWIPE:
-        // 1. Jarak geser horizontal harus > 50px (biar gak kesenggol dikit ganti)
-        // 2. Gerakan Horizontal harus lebih dominan dari Vertikal (Math.abs)
-        //    (Ini PENTING: Supaya kalau Mas scroll agenda ke bawah, bulannya GAK ikut ganti)
-        
-        if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
-            
-            // CEK: Sedang di halaman mana?
-            if (typeof isNotesView !== 'undefined' && isNotesView) {
-                // --- DI HALAMAN CATATAN ---
-                if (diffX > 0) navNotes(1);  // Swipe Kiri -> Next Week
-                else navNotes(-1);           // Swipe Kanan -> Prev Week
-            } else {
-                // --- DI HALAMAN KALENDER ---
-                if (diffX > 0) changeMonth(1);  // Swipe Kiri -> Bulan Depan
-                else changeMonth(-1);           // Swipe Kanan -> Bulan Lalu
-            }
-        }
-    }, { passive: true });
+    // 2. Swipe untuk Catatanku (Ganti Minggu/Bulan/Tahun)
+    const notesArea = document.getElementById('notesViewContainer');
+    if (notesArea) {
+        let sX = 0;
+        notesArea.addEventListener('touchstart', e => { sX = e.changedTouches[0].screenX; }, { passive: true });
+        notesArea.addEventListener('touchend', e => {
+            const eX = e.changedTouches[0].screenX;
+            if (eX < sX - 70) navNotes(1);  // Swipe Kiri -> Next
+            if (eX > sX + 70) navNotes(-1); // Swipe Kanan -> Prev
+        }, { passive: true });
+    }
 }
 
 // Fungsi untuk buka-tutup sidebar
@@ -2500,152 +2366,3 @@ document.addEventListener('DOMContentLoaded', function () {
     // Kamu perlu inject JavaScript Interface, tapi biasanya onpopstate di atas sudah cukup
     // jika Android Overridenya benar.
 });
-// --- SISTEM NOTIFIKASI & ALARM ---
-
-// 1. Minta Izin Notifikasi
-function requestNotificationPermission() {
-    if (!('Notification' in window)) {
-        alert('Browser ini tidak mendukung notifikasi.');
-        return;
-    }
-
-    Notification.requestPermission().then((permission) => {
-        if (permission === 'granted') {
-            // Coba kirim notifikasi tes
-            navigator.serviceWorker.ready.then((registration) => {
-                registration.showNotification('Notifikasi Aktif', {
-                    body: 'Kalender BizDev akan mengingatkan jadwal Anda!',
-                    icon: 'icons/icon_192.png',
-                    vibrate: [200, 100, 200]
-                });
-            });
-        } else {
-            alert('Notifikasi diblokir. Mohon izinkan di pengaturan browser.');
-        }
-    });
-}
-
-// 2. Cek Jadwal Setiap Menit
-function startAlarmSystem() {
-    // Cek setiap 60 detik
-    setInterval(() => {
-        checkReminders();
-    }, 60000); 
-    
-    // Cek juga saat pertama kali load
-    checkReminders();
-}
-
-function checkReminders() {
-    if (Notification.permission !== 'granted') return;
-
-    const now = new Date();
-    const currentY = now.getFullYear();
-    const currentM = now.getMonth();
-    const currentD = now.getDate();
-    
-    // Format Jam Sekarang (HH:MM)
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const currentTimeStr = `${hours}:${minutes}`;
-
-    const notes = getStoredNotes(); // Ambil data
-    const todayKey = `${currentY}-${currentM}-${currentD}`; // Key hari ini
-
-    // Cek apakah ada catatan hari ini
-    if (notes[todayKey]) {
-        notes[todayKey].forEach(note => {
-            // Syarat Notifikasi:
-            // 1. Punya waktu (time)
-            // 2. Waktunya SAMA dengan jam sekarang
-            // 3. Belum pernah dinotifikasi (!note.notified)
-            if (note.time === currentTimeStr && !note.notified) {
-                triggerNotification(note);
-                
-                // Tandai sudah dinotifikasi agar tidak bunyi terus
-                markAsNotified(todayKey, note.id);
-            }
-        });
-    }
-}
-
-function triggerNotification(note) {
-    if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.ready.then((registration) => {
-            registration.showNotification('Pengingat Jadwal 🔔', {
-                body: `${note.text} (${note.time})`,
-                icon: 'icons/icon_192.png',
-                vibrate: [200, 100, 200, 100, 200],
-                tag: `note-${note.id}`, // Agar notifikasi tidak menumpuk
-                data: {
-                    dateKey: note.dateKey, // Untuk dibuka saat diklik
-                    id: note.id
-                }
-            });
-        });
-    }
-}
-
-function markAsNotified(dateKey, noteId) {
-    const notes = getStoredNotes();
-    if (notes[dateKey]) {
-        const note = notes[dateKey].find(n => n.id == noteId);
-        if (note) {
-            note.notified = true; // Tambahkan flag baru
-            localStorage.setItem('rhadzCalNotes', JSON.stringify(notes));
-        }
-    }
-}
-// --- SISTEM INSTALL PWA (SILENT MODE) ---
-
-let deferredPrompt; // Variabel penyimpan event install
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const iosModal = document.getElementById('iosInstallModal');
-
-// 1. Event Listener Chrome/Android (Simpan event, jangan munculkan banner)
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e; // Simpan event ke variabel global
-    // Kita tidak memanggil UI apa-apa di sini (Silent)
-});
-
-// 2. Fungsi Eksekusi Install (Dipanggil dari Tombol Settings)
-function triggerInstallFromSettings() {
-    if (isStandalone) {
-        alert('Aplikasi sudah terinstall.');
-        return;
-    }
-
-    if (isIOS) {
-        // Khusus iOS: Buka Modal Panduan
-        if(iosModal) {
-            iosModal.classList.remove('hidden');
-            iosModal.classList.add('flex');
-            // Tutup modal settings biar fokus ke panduan
-            closeModal();
-        }
-    } else if (deferredPrompt) {
-        // Android/PC: Panggil Prompt Asli
-        deferredPrompt.prompt();
-        
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('User menerima instalasi');
-                deferredPrompt = null;
-                openSettings(); // Refresh halaman settings
-            }
-        });
-    } else {
-        // Fallback jika browser tidak support PWA otomatis
-        alert('Untuk menginstall: Buka menu browser (titik tiga) > Pilih "Install App" atau "Add to Home Screen".');
-    }
-}
-
-// 3. Fungsi Tutup Modal iOS
-function closeIosModal() {
-    if(iosModal) {
-        iosModal.classList.remove('flex');
-        iosModal.classList.add('hidden');
-    }
-}
