@@ -72,6 +72,9 @@ function init() {
     // 4. Render komponen utama
     renderCalendar();
     updateQuote();
+    updateClock();
+    
+    setupSwipeListeners();
 
     // 5. Setup History & Back Button (Insight User)
     // Kita paksa aplikasi mulai dari hash #calendar sebagai base entry.
@@ -2209,24 +2212,60 @@ function closeModal(fromHistory = false) {
 }
 
 function setupSwipe() {
-    // 1. Swipe untuk Kalender (Ganti Bulan)
-    let startX = 0; const area = document.getElementById('swipeArea');
-    if (area) {
-        area.addEventListener('touchstart', e => { startX = e.changedTouches[0].screenX; }, { passive: true });
-        area.addEventListener('touchend', e => {
-            const endX = e.changedTouches[0].screenX; if (endX < startX - 70) changeMonth(1); if (endX > startX + 70) changeMonth(-1);
+    // --- 1. Swipe untuk Kalender (SELURUH LAYAR) ---
+    // Kita ubah targetnya ke 'calendarViewContainer' agar bisa swipe di agenda juga
+    const calContainer = document.getElementById('calendarViewContainer');
+    
+    if (calContainer) {
+        let startX = 0;
+        let startY = 0; // Kita butuh posisi Y untuk membedakan Scroll vs Swipe
+
+        calContainer.addEventListener('touchstart', e => { 
+            startX = e.changedTouches[0].screenX; 
+            startY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        calContainer.addEventListener('touchend', e => {
+            const endX = e.changedTouches[0].screenX;
+            const endY = e.changedTouches[0].screenY;
+            
+            const diffX = endX - startX;
+            const diffY = endY - startY;
+
+            // Syarat ganti bulan:
+            // 1. Jarak swipe minimal 50px (biar gak kesenggol dikit ganti)
+            // 2. Gerakan Horizontal harus lebih besar dari Vertikal (Math.abs)
+            //    (Ini supaya kalau user lagi scroll ke bawah, bulannya gak ikut ganti)
+            if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX < 0) changeMonth(1);  // Geser Kiri -> Bulan Depan
+                if (diffX > 0) changeMonth(-1); // Geser Kanan -> Bulan Lalu
+            }
         }, { passive: true });
     }
 
-    // 2. Swipe untuk Catatanku (Ganti Minggu/Bulan/Tahun)
+    // --- 2. Swipe untuk Catatanku (Ganti Minggu/Bulan/Tahun) ---
     const notesArea = document.getElementById('notesViewContainer');
     if (notesArea) {
         let sX = 0;
-        notesArea.addEventListener('touchstart', e => { sX = e.changedTouches[0].screenX; }, { passive: true });
+        let sY = 0;
+        
+        notesArea.addEventListener('touchstart', e => { 
+            sX = e.changedTouches[0].screenX; 
+            sY = e.changedTouches[0].screenY;
+        }, { passive: true });
+        
         notesArea.addEventListener('touchend', e => {
             const eX = e.changedTouches[0].screenX;
-            if (eX < sX - 70) navNotes(1);  // Swipe Kiri -> Next
-            if (eX > sX + 70) navNotes(-1); // Swipe Kanan -> Prev
+            const eY = e.changedTouches[0].screenY;
+            
+            const dX = eX - sX;
+            const dY = eY - sY;
+
+            // Saya tambahkan logika anti-scroll disini juga biar makin enak
+            if (Math.abs(dX) > 50 && Math.abs(dX) > Math.abs(dY)) {
+                if (dX < 0) navNotes(1);  // Swipe Kiri -> Next
+                if (dX > 0) navNotes(-1); // Swipe Kanan -> Prev
+            }
         }, { passive: true });
     }
 }
