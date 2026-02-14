@@ -2212,62 +2212,42 @@ function closeModal(fromHistory = false) {
 }
 
 function setupSwipe() {
-    // --- 1. KALENDER (BISA SWIPE DI AREA AGENDA JUGA) ---
-    const calContainer = document.getElementById('calendarViewContainer');
+    // 1. SWIPE KALENDER (Hanya area tanggalan)
+    // Menggunakan swipeArea atau calendarBody sebagai cadangan
+    const area = document.getElementById('swipeArea') || document.getElementById('calendarBody');
     
-    if (calContainer) {
+    if (area) {
         let startX = 0;
-        let startY = 0;
-
-        calContainer.addEventListener('touchstart', e => {
-            // Catat posisi awal jari
-            startX = e.changedTouches[0].screenX;
-            startY = e.changedTouches[0].screenY;
+        
+        area.addEventListener('touchstart', e => { 
+            startX = e.changedTouches[0].screenX; 
         }, { passive: true });
-
-        calContainer.addEventListener('touchend', e => {
+        
+        area.addEventListener('touchend', e => {
             const endX = e.changedTouches[0].screenX;
-            const endY = e.changedTouches[0].screenY;
             
-            // Hitung selisih jarak
-            const diffX = startX - endX; // Positif = Geser Kiri, Negatif = Geser Kanan
-            const diffY = startY - endY;
-
-            // LOGIKA BARU YANG LEBIH AMAN:
-            // 1. Math.abs(diffX) > 50 : Harus geser samping minimal 50px
-            // 2. Math.abs(diffY) < 150 : Toleransi gerakan naik-turun sampai 150px
-            //    (Jadi kalau jari agak miring dikit saat swipe, tetap dianggap swipe)
-            
-            if (Math.abs(diffX) > 50 && Math.abs(diffY) < 150) {
-                if (diffX > 0) changeMonth(1);  // Geser Kiri -> Bulan Depan
-                if (diffX < 0) changeMonth(-1); // Geser Kanan -> Bulan Mundur
-            }
+            // Logika Sederhana (Jarak geser 50px)
+            if (endX < startX - 50) changeMonth(1);  // Geser Kiri -> Bulan Depan
+            if (endX > startX + 50) changeMonth(-1); // Geser Kanan -> Bulan Lalu
         }, { passive: true });
     }
 
-    // --- 2. CATATANKU ---
+    // 2. SWIPE CATATANKU (Halaman Notes)
     const notesArea = document.getElementById('notesViewContainer');
+    
     if (notesArea) {
         let sX = 0;
-        let sY = 0;
-
-        notesArea.addEventListener('touchstart', e => {
-            sX = e.changedTouches[0].screenX;
-            sY = e.changedTouches[0].screenY;
+        
+        notesArea.addEventListener('touchstart', e => { 
+            sX = e.changedTouches[0].screenX; 
         }, { passive: true });
-
+        
         notesArea.addEventListener('touchend', e => {
             const eX = e.changedTouches[0].screenX;
-            const eY = e.changedTouches[0].screenY;
             
-            const dX = sX - eX;
-            const dY = sY - eY;
-
-            // Logika sama: Toleransi vertikal 150px
-            if (Math.abs(dX) > 50 && Math.abs(dY) < 150) {
-                if (dX > 0) navNotes(1);  // Swipe Kiri -> Next
-                if (dX < 0) navNotes(-1); // Swipe Kanan -> Prev
-            }
+            // Logika Sederhana
+            if (eX < sX - 50) navNotes(1);  // Geser Kiri -> Minggu Depan
+            if (eX > sX + 50) navNotes(-1); // Geser Kanan -> Minggu Lalu
         }, { passive: true });
     }
 }
