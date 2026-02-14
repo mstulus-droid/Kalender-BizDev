@@ -2243,45 +2243,53 @@ function closeModal(fromHistory = false) {
 }
 
 function setupSwipe() {
-    // Debug Visual (Cek apakah kode baru sudah masuk)
-    const debug = document.createElement('div');
-    debug.style.cssText = "position:fixed; top:0; left:0; z-index:9999; background:red; color:white; font-size:10px; padding:2px;";
-    debug.innerText = "SWIPE V7 (GLOBAL)";
-    document.body.appendChild(debug);
-
     let startX = 0;
     let startY = 0;
 
-    // Pasang di WINDOW (Seluruh Layar)
+    // 1. PASANG SENSOR DI JENDELA UTAMA (WINDOW)
+    // Ini kuncinya: Agar swipe jalan dimanapun jari menyentuh layar
     window.addEventListener('touchstart', (e) => {
-        // Jangan jalan kalau Modal buka
-        if (document.getElementById('selectorModal').classList.contains('active')) return;
-        
+        // PENGAMAN 1: Jangan swipe jika Modal/Popup sedang terbuka
+        const modal = document.getElementById('selectorModal');
+        if (modal && modal.classList.contains('active')) return;
+
+        // PENGAMAN 2: Jangan swipe jika sedang scroll area tahun/bulan (di dalam scroller)
+        if (e.target.closest('.scroller-col')) return;
+
         startX = e.changedTouches[0].screenX;
         startY = e.changedTouches[0].screenY;
-    }, {passive: true});
+    }, { passive: true });
 
     window.addEventListener('touchend', (e) => {
-        // Jangan jalan kalau Modal buka
-        if (document.getElementById('selectorModal').classList.contains('active')) return;
+        // PENGAMAN: Cek Modal lagi
+        const modal = document.getElementById('selectorModal');
+        if (modal && modal.classList.contains('active')) return;
 
         const endX = e.changedTouches[0].screenX;
         const endY = e.changedTouches[0].screenY;
-        const diffX = startX - endX;
+        
+        const diffX = startX - endX; // Positif = Geser Kiri (Next), Negatif = Geser Kanan (Prev)
         const diffY = startY - endY;
 
-        // Logika Swipe (Jarak > 50px & Gerakan mendatar)
+        // LOGIKA SWIPE:
+        // 1. Jarak geser horizontal harus > 50px (biar gak kesenggol dikit ganti)
+        // 2. Gerakan Horizontal harus lebih dominan dari Vertikal (Math.abs)
+        //    (Ini PENTING: Supaya kalau Mas scroll agenda ke bawah, bulannya GAK ikut ganti)
+        
         if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
-            debug.innerText = "GESER TERDETEKSI!";
-            debug.style.background = "green";
             
+            // CEK: Sedang di halaman mana?
             if (typeof isNotesView !== 'undefined' && isNotesView) {
-                if (diffX > 0) navNotes(1); else navNotes(-1);
+                // --- DI HALAMAN CATATAN ---
+                if (diffX > 0) navNotes(1);  // Swipe Kiri -> Next Week
+                else navNotes(-1);           // Swipe Kanan -> Prev Week
             } else {
-                if (diffX > 0) changeMonth(1); else changeMonth(-1);
+                // --- DI HALAMAN KALENDER ---
+                if (diffX > 0) changeMonth(1);  // Swipe Kiri -> Bulan Depan
+                else changeMonth(-1);           // Swipe Kanan -> Bulan Lalu
             }
         }
-    }, {passive: true});
+    }, { passive: true });
 }
 
 // Fungsi untuk buka-tutup sidebar
