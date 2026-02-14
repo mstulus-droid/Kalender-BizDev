@@ -2243,47 +2243,62 @@ function closeModal(fromHistory = false) {
 }
 
 function setupSwipe() {
-    let touchStartX = 0;
-    let touchStartY = 0;
+    // --- MODE DEBUG VISUAL ---
+    // Kita buat elemen pembantu untuk cek apakah touch terdeteksi
+    // Hapus elemen debug lama jika ada
+    const oldDebug = document.getElementById('debug-swipe');
+    if (oldDebug) oldDebug.remove();
 
-    // Pasang sensor di SELURUH LAYAR (Document)
-    document.addEventListener('touchstart', function(e) {
-        // PENGAMAN 1: Jangan swipe jika sedang buka Modal/Popup
+    // Buat elemen baru (Kotak Merah di Pojok Kiri Atas)
+    const debugEl = document.createElement('div');
+    debugEl.id = 'debug-swipe';
+    debugEl.style.cssText = "position:fixed; top:0; left:0; background:red; color:white; padding:5px; z-index:9999; font-size:10px; pointer-events:none; opacity:0.8;";
+    debugEl.innerText = "SWIPE READY (v6)";
+    document.body.appendChild(debugEl);
+    // -------------------------
+
+    let startX = 0;
+    let startY = 0;
+
+    // TARGET: WINDOW (Seluruh Layar)
+    window.addEventListener('touchstart', function(e) {
+        // Cek Modal
         const modal = document.getElementById('selectorModal');
-        if (modal && modal.classList.contains('active')) return;
+        if (modal && modal.classList.contains('active')) {
+            debugEl.innerText = "Modal Aktif (Swipe Mati)";
+            return;
+        }
 
-        // PENGAMAN 2: Jangan swipe jika sedang scroll area tahun/bulan (di dalam modal)
-        if (e.target.closest('.scroller-col')) return;
-
-        touchStartX = e.changedTouches[0].screenX;
-        touchStartY = e.changedTouches[0].screenY;
+        startX = e.changedTouches[0].screenX;
+        startY = e.changedTouches[0].screenY;
+        
+        debugEl.innerText = `Start: ${Math.round(startX)}, ${Math.round(startY)}`;
     }, { passive: true });
 
-    document.addEventListener('touchend', function(e) {
-        // PENGAMAN: Cek Modal lagi
+    window.addEventListener('touchend', function(e) {
+        // Cek Modal lagi
         const modal = document.getElementById('selectorModal');
         if (modal && modal.classList.contains('active')) return;
 
-        const touchEndX = e.changedTouches[0].screenX;
-        const touchEndY = e.changedTouches[0].screenY;
+        const endX = e.changedTouches[0].screenX;
+        const endY = e.changedTouches[0].screenY;
         
-        const diffX = touchStartX - touchEndX;
-        const diffY = touchStartY - touchEndY;
+        const diffX = startX - endX;
+        const diffY = startY - endY;
 
-        // LOGIKA SWIPE:
-        // 1. Jarak geser horizontal harus > 50px
-        // 2. Jarak geser horizontal harus lebih dominan dari vertikal (biar gak bentrok sama scroll agenda)
+        debugEl.innerText = `End: ${Math.round(endX)} | Geser X: ${Math.round(diffX)}`;
+
+        // LOGIKA SWIPE (Jarak minimal 50px)
         if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+            debugEl.style.background = "green"; // Ubah jadi hijau kalau swipe sukses
+            debugEl.innerText = "SWIPE DETECTED!";
             
-            // CEK: Sedang di halaman mana?
             if (typeof isNotesView !== 'undefined' && isNotesView) {
-                // --- MODE CATATAN ---
-                if (diffX > 0) navNotes(1);  // Geser Kiri -> Next
-                else navNotes(-1);           // Geser Kanan -> Prev
+                if (diffX > 0) navNotes(1); 
+                else navNotes(-1);
             } else {
-                // --- MODE KALENDER ---
-                if (diffX > 0) changeMonth(1);  // Geser Kiri -> Bulan Depan
-                else changeMonth(-1);           // Geser Kanan -> Bulan Lalu
+                if (diffX > 0) changeMonth(1); 
+                else changeMonth(-1);
             }
         }
     }, { passive: true });

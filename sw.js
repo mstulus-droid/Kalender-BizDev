@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bizdev-cal-v5-swipefix';
+const CACHE_NAME = 'bizdev-cal-v6-DEBUG-MODE';
 const ASSETS = [
     './',
     './index.html',
