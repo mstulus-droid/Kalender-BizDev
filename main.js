@@ -93,6 +93,7 @@ function init() {
         const transSelect = document.getElementById('transitionSelect');
         if (transSelect) transSelect.value = settings.transitionType;
     }, 100);
+    startAlarmSystem();
 }
 
 function syncSettingsUI() {
@@ -386,25 +387,25 @@ function toggleNotesView(fromHistory = false) {
     const calHeader = document.getElementById('calendarHeaderCenter');
     const notesHeader = document.getElementById('notesHeaderCenter');
 
-    // Elemen Footer Mobile
+    // Footer Icon Elements
     const footerLeft = document.getElementById('footerLeftBtn');
     const footerRight = document.getElementById('footerRightBtn');
-
-    // Elemen Tombol Sidebar Desktop (BARU)
+    
+    // Desktop Button
     const btnDesktop = document.getElementById('btnToggleViewDesktop');
 
     if (isNotesView) {
-        // MASUK KE TAMPILAN CATATAN
+        // --- MASUK MODE NOTES ---
         calendarContainer.classList.add('hidden');
+        notesContainer.classList.remove('hidden');
         notesContainer.classList.add('active');
         calHeader.classList.add('hidden');
         notesHeader.classList.remove('hidden');
 
-        // Update Footer Mobile
-        footerLeft.innerHTML = '<i class="fas fa-home text-white text-sm"></i>';
-        footerRight.innerHTML = '<i class="fas fa-plus text-white text-sm"></i>';
-
-        // Update Tombol Sidebar Desktop (Jadi tombol "Kembali ke Kalender")
+        // Update Icon Footer
+        if(footerLeft) footerLeft.innerHTML = '<i class="fas fa-home text-white text-sm"></i>';
+        
+        // Desktop Sidebar
         if (btnDesktop) {
             btnDesktop.innerHTML = '<i class="fas fa-calendar-alt"></i> Kalender';
             btnDesktop.classList.add('bg-white/20');
@@ -416,27 +417,26 @@ function toggleNotesView(fromHistory = false) {
         if (!fromHistory && location.hash !== '#notes') {
             history.pushState({ view: 'notes' }, '', '#notes');
         }
+
     } else {
-        // KEMBALI KE TAMPILAN KALENDER
+        // --- KEMBALI KE KALENDER ---
         calendarContainer.classList.remove('hidden');
         notesContainer.classList.remove('active');
+        notesContainer.classList.add('hidden');
         calHeader.classList.remove('hidden');
         notesHeader.classList.add('hidden');
 
-        // Update Footer Mobile
-        footerLeft.innerHTML = '<i class="fas fa-book text-white text-sm"></i>';
-        footerRight.innerHTML = '<i class="fas fa-search text-white text-sm"></i>';
-
-        // Update Tombol Sidebar Desktop (Jadi tombol "Buka Catatan")
+        // Reset Icon Footer
+        if(footerLeft) footerLeft.innerHTML = '<i class="fas fa-book text-white text-sm"></i>';
+        
+        // Reset Desktop Sidebar
         if (btnDesktop) {
-            btnDesktop.innerHTML = '<i class="fas fa-book"></i> Catatan';
+            btnDesktop.innerHTML = '<i class="fas fa-book"></i> Catatanku';
             btnDesktop.classList.remove('bg-white/20');
         }
 
         if (!fromHistory && location.hash === '#notes') {
             history.back();
-        } else if (!fromHistory && (location.hash === '' || location.hash === '#calendar')) {
-            // Do nothing
         }
     }
 }
@@ -1525,6 +1525,18 @@ function openSettings() {
                 </select>
             </div>`;
 
+    const notifHTML = `
+        <div class="mt-4 p-3 bg-white border border-slate-200 rounded-xl flex justify-between items-center shadow-sm">
+            <div class="flex flex-col">
+                <span class="font-bold text-sm text-slate-700">Izin Notifikasi</span>
+                <span class="text-[0.65rem] text-slate-400">Diperlukan untuk alarm jadwal</span>
+            </div>
+            <button onclick="requestNotificationPermission()" class="bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-200 transition">
+                IZINKAN
+            </button>
+        </div>
+    `;
+
     const backupHTML = `
             <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-6 mb-4">
                 <span class="block font-bold text-sm text-blue-800 mb-2">Cadangkan Data</span>
@@ -1549,6 +1561,7 @@ function openSettings() {
         makeToggle('Hari Peringatan', 'showObservances') +
         themeSectionHTML +
         transitionHTML +
+        notifHTML +
         backupHTML + // <--- Posisi Baru (Paling Bawah)
         '<div class="h-6"></div>'; // Spacer kecil di ujung bawah
 
@@ -1674,43 +1687,67 @@ function selectHighlightedYear() {
 
 // --- FITUR PENCARIAN BARU (TEKS & TANGGAL) ---
 
+// --- FITUR PENCARIAN BARU (FIXED LAYOUT & SCROLL) ---
+
 function openDateSearch() {
     const overlay = document.getElementById('selectorModal');
     const body = document.getElementById('modalBody');
     const title = document.getElementById('modalTitle');
 
+    // DETEKSI LAYAR: Jika Desktop (>1024px), pakai 'pos-center'. Jika HP, pakai 'pos-top'
+    const isDesktop = window.innerWidth >= 1024;
+
+    if (isDesktop) {
+        overlay.classList.remove('pos-top');
+        overlay.classList.add('pos-center'); // Desktop: Tengah
+    } else {
+        overlay.classList.remove('pos-center');
+        overlay.classList.add('pos-top'); // Mobile: Atas
+    }
+
     title.classList.remove('hidden');
     title.textContent = "PENCARIAN";
-    body.className = "w-full p-2";
+    
+    // Reset padding agar kita bisa atur full area
+    body.className = "w-full p-0"; 
 
-    // 1. Render Tampilan Awal (Input Search)
+    // STRUKTUR HTML
+    // Perbaikan Desktop: 'lg:h-auto' agar tinggi menyesuaikan isi, 'lg:max-h-[500px]' batas maksimal
+    // Kita hapus height fix di desktop agar background membungkus sempurna
     body.innerHTML = `
-        <div class="relative mb-4">
-            <input type="text" id="searchInput" placeholder="Cari catatan (cth: Rapat, Tagihan)..." 
-                class="w-full p-3 pl-10 rounded-xl border border-slate-200 bg-slate-50 font-bold text-sm focus:outline-none focus:border-blue-500 transition shadow-inner text-slate-700"
-                autocomplete="off">
-            <i class="fas fa-search absolute left-3 top-3.5 text-slate-400"></i>
-        </div>
-
-        <div id="searchResults" class="min-h-[150px] max-h-[60vh] overflow-y-auto space-y-2 mb-4 custom-scrollbar">
-            <div class="flex flex-col items-center justify-center h-32 opacity-50">
-                <i class="fas fa-search text-3xl mb-2 text-slate-300"></i>
-                <p class="text-xs text-slate-400">Ketik kata kunci di atas</p>
+        <div class="flex flex-col h-[65vh] lg:h-[450px] lg:max-h-[60vh] bg-white rounded-b-xl overflow-hidden">
+            
+            <div class="flex-none p-4 pb-2">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Cari catatan..." 
+                        class="w-full p-3 pl-10 rounded-xl border border-slate-200 bg-slate-50 font-bold text-sm focus:outline-none focus:border-blue-500 transition shadow-inner text-slate-700"
+                        autocomplete="off">
+                    <i class="fas fa-search absolute left-3 top-3.5 text-slate-400"></i>
+                </div>
             </div>
-        </div>
 
-        <div class="border-t border-slate-100 pt-3">
-            <button onclick="switchToDateScroller()" class="w-full bg-slate-100 text-slate-600 p-3 rounded-xl font-bold text-xs tracking-wider hover:bg-slate-200 transition flex items-center justify-center gap-2">
-                <i class="fas fa-calendar-alt"></i> ATAU PILIH TANGGAL MANUAL
-            </button>
+            <div id="searchResults" class="flex-1 overflow-y-auto min-h-0 px-4 custom-scrollbar">
+                <div class="flex flex-col items-center justify-center h-full opacity-50">
+                    <i class="fas fa-search text-4xl mb-3 text-slate-300"></i>
+                    <p class="text-xs text-slate-400 font-medium">Ketik kata kunci di atas</p>
+                </div>
+            </div>
+
+            <div class="flex-none p-4 pt-2 border-t border-slate-100 bg-white mt-auto z-10 relative">
+                <button onclick="switchToDateScroller()" class="w-full bg-slate-100 text-slate-600 p-3 rounded-xl font-bold text-xs tracking-wider hover:bg-slate-200 transition flex items-center justify-center gap-2 shadow-sm">
+                    <i class="fas fa-calendar-alt"></i> ATAU PILIH TANGGAL MANUAL
+                </button>
+            </div>
+
         </div>
     `;
 
-    openModal('pos-top');
+    // Buka Modal sesuai posisi yang ditentukan di atas
+    openModal(isDesktop ? 'pos-center' : 'pos-top');
 
-    // 2. Logic Pencarian Real-time
+    // Logic Pencarian (SAMA SEPERTI SEBELUMNYA)
     const input = document.getElementById('searchInput');
-    input.focus();
+    setTimeout(() => input.focus(), 100);
     
     input.oninput = function() {
         const keyword = this.value.toLowerCase().trim();
@@ -1718,37 +1755,32 @@ function openDateSearch() {
         
         if (!keyword) {
             container.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-32 opacity-50">
-                    <i class="fas fa-search text-3xl mb-2 text-slate-300"></i>
-                    <p class="text-xs text-slate-400">Ketik kata kunci di atas</p>
+                <div class="flex flex-col items-center justify-center h-full opacity-50">
+                    <i class="fas fa-search text-4xl mb-3 text-slate-300"></i>
+                    <p class="text-xs text-slate-400 font-medium">Ketik kata kunci di atas</p>
                 </div>`;
             return;
         }
 
-        const notes = getStoredNotes(); // Ambil semua data
+        const notes = getStoredNotes();
         let results = [];
 
-        // Loop semua tanggal dan cari text yang cocok
         Object.keys(notes).forEach(dateKey => {
             const dayNotes = notes[dateKey];
             dayNotes.forEach(note => {
                 if (note.text.toLowerCase().includes(keyword)) {
-                    results.push({
-                        dateKey: dateKey,
-                        ...note
-                    });
+                    results.push({ dateKey: dateKey, ...note });
                 }
             });
         });
 
-        // Urutkan hasil (terbaru di atas)
         results.sort((a, b) => new Date(b.dateKey) - new Date(a.dateKey));
 
-        // Render Hasil
         if (results.length === 0) {
             container.innerHTML = `
-                <div class="text-center py-8 text-slate-400">
-                    <p class="text-xs font-bold">Tidak ditemukan catatan "${keyword}"</p>
+                <div class="flex flex-col items-center justify-center h-full text-slate-400">
+                    <i class="far fa-sad-tear text-2xl mb-2"></i>
+                    <p class="text-xs font-bold">Tidak ada hasil "${keyword}"</p>
                 </div>`;
         } else {
             container.innerHTML = '';
@@ -1757,48 +1789,46 @@ function openDateSearch() {
                 const dateObj = new Date(y, m, d);
                 const dateStr = `${d} ${monthNames[m]} ${y}`;
                 
-                // Tentukan warna ikon berdasarkan kategori
                 let iconClass = 'fa-sticky-note text-emerald-500';
                 if (res.category === 'kerja') iconClass = 'fa-briefcase text-blue-500';
                 else if (res.category === 'penting') iconClass = 'fa-exclamation-circle text-red-500';
                 else if (res.category === 'ide') iconClass = 'fa-lightbulb text-amber-500';
 
                 const el = document.createElement('div');
-                el.className = 'bg-white p-3 rounded-xl border border-slate-100 shadow-sm cursor-pointer hover:bg-slate-50 transition active:scale-95';
+                el.className = 'bg-white p-3 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition active:scale-95 group mb-2 last:mb-0';
                 el.innerHTML = `
                     <div class="flex justify-between items-start mb-1">
-                        <span class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-wider">${dateStr}</span>
-                        ${res.time ? `<span class="text-[0.6rem] bg-slate-100 text-slate-500 px-1.5 rounded font-bold">${res.time}</span>` : ''}
+                        <span class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-wider group-hover:text-blue-400 transition">${dateStr}</span>
+                        ${res.time ? `<span class="text-[0.6rem] bg-slate-100 text-slate-500 px-1.5 rounded font-bold group-hover:bg-white group-hover:text-blue-500 transition">${res.time}</span>` : ''}
                     </div>
                     <div class="flex items-start gap-2">
                         <i class="fas ${iconClass} mt-1 text-xs"></i>
-                        <p class="text-sm font-medium text-slate-700 line-clamp-2">${highlightKeyword(res.text, keyword)}</p>
+                        <p class="text-sm font-medium text-slate-700 line-clamp-2 leading-snug">${highlightKeyword(res.text, keyword)}</p>
                     </div>
                 `;
                 
-                // Saat diklik, buka detail tanggal tersebut
                 el.onclick = () => {
-                    // Logic buka detail (copas logic dari renderCalendar)
                     const h = getHijriDate(dateObj);
                     const dayName = dayNames[dateObj.getDay()];
                     
-                    // Hitung pasaran manual (copas logic)
                     const refDate = new Date(2026, 1, 1);
                     const diff = Math.floor((dateObj - refDate) / 86400000);
                     let pasaranIdx = (3 + (diff % 5)) % 5;
                     if (pasaranIdx < 0) pasaranIdx += 5;
                     const pasaranName = pasaranArr[pasaranIdx];
 
-                    // Tutup modal search dulu
-                    closeModal();
+                    const holiday = getHolidayName(d, m, y);
+                    const cuti = getCutiBersamaName(d, m, y);
+                    const obs = getObservanceName(d, m);
+                    const bday = getBirthday(d, m);
+                    const anniv = isAnniversary(d, m);
 
-                    // Pindah kalender ke bulan target biar user tidak bingung
+                    closeModal();
                     currentDate = new Date(y, m, 1);
                     renderCalendar();
 
-                    // Buka detail popup
                     setTimeout(() => {
-                        showDetail(d, m, y, dayName, pasaranName, h.day, hijriMonths[h.month], h.year, null, null, null, (dateObj.getDay()===0), null, null, h.isHardcoded);
+                        showDetail(d, m, y, dayName, pasaranName, h.day, hijriMonths[h.month], h.year, holiday, cuti, obs, (dateObj.getDay()===0), bday, anniv, h.isHardcoded);
                     }, 300);
                 };
                 container.appendChild(el);
@@ -2350,3 +2380,99 @@ document.addEventListener('DOMContentLoaded', function () {
     // Kamu perlu inject JavaScript Interface, tapi biasanya onpopstate di atas sudah cukup
     // jika Android Overridenya benar.
 });
+// --- SISTEM NOTIFIKASI & ALARM ---
+
+// 1. Minta Izin Notifikasi
+function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        alert('Browser ini tidak mendukung notifikasi.');
+        return;
+    }
+
+    Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+            // Coba kirim notifikasi tes
+            navigator.serviceWorker.ready.then((registration) => {
+                registration.showNotification('Notifikasi Aktif', {
+                    body: 'Kalender BizDev akan mengingatkan jadwal Anda!',
+                    icon: 'icons/icon_192.png',
+                    vibrate: [200, 100, 200]
+                });
+            });
+        } else {
+            alert('Notifikasi diblokir. Mohon izinkan di pengaturan browser.');
+        }
+    });
+}
+
+// 2. Cek Jadwal Setiap Menit
+function startAlarmSystem() {
+    // Cek setiap 60 detik
+    setInterval(() => {
+        checkReminders();
+    }, 60000); 
+    
+    // Cek juga saat pertama kali load
+    checkReminders();
+}
+
+function checkReminders() {
+    if (Notification.permission !== 'granted') return;
+
+    const now = new Date();
+    const currentY = now.getFullYear();
+    const currentM = now.getMonth();
+    const currentD = now.getDate();
+    
+    // Format Jam Sekarang (HH:MM)
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const currentTimeStr = `${hours}:${minutes}`;
+
+    const notes = getStoredNotes(); // Ambil data
+    const todayKey = `${currentY}-${currentM}-${currentD}`; // Key hari ini
+
+    // Cek apakah ada catatan hari ini
+    if (notes[todayKey]) {
+        notes[todayKey].forEach(note => {
+            // Syarat Notifikasi:
+            // 1. Punya waktu (time)
+            // 2. Waktunya SAMA dengan jam sekarang
+            // 3. Belum pernah dinotifikasi (!note.notified)
+            if (note.time === currentTimeStr && !note.notified) {
+                triggerNotification(note);
+                
+                // Tandai sudah dinotifikasi agar tidak bunyi terus
+                markAsNotified(todayKey, note.id);
+            }
+        });
+    }
+}
+
+function triggerNotification(note) {
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification('Pengingat Jadwal 🔔', {
+                body: `${note.text} (${note.time})`,
+                icon: 'icons/icon_192.png',
+                vibrate: [200, 100, 200, 100, 200],
+                tag: `note-${note.id}`, // Agar notifikasi tidak menumpuk
+                data: {
+                    dateKey: note.dateKey, // Untuk dibuka saat diklik
+                    id: note.id
+                }
+            });
+        });
+    }
+}
+
+function markAsNotified(dateKey, noteId) {
+    const notes = getStoredNotes();
+    if (notes[dateKey]) {
+        const note = notes[dateKey].find(n => n.id == noteId);
+        if (note) {
+            note.notified = true; // Tambahkan flag baru
+            localStorage.setItem('rhadzCalNotes', JSON.stringify(notes));
+        }
+    }
+}

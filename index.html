@@ -133,9 +133,6 @@
                 </div>
                 <div class="hijri-label" id="hijriRangeMobile">RAJAB - SYA'BAN</div>
             </div>
-            <div class="header-center hidden" id="notesHeaderCenter">
-                <span class="font-bold tracking-widest uppercase text-sm">CATATANKU</span>
-            </div>
             <div class="header-right">
                 <div class="btn-today-icon" onclick="goToToday()">
                     <i class="fas fa-calendar-day text-sm"></i>
@@ -223,7 +220,7 @@
             <!-- VIEW 2: NOTES (HIDDEN DEFAULT) -->
             <div id="notesViewContainer" class="notes-view-container hidden flex-col h-full bg-slate-50 relative">
 
-                <div class="flex-shrink-0 bg-slate-50 shadow-sm z-10 relative">
+                <div class="flex-shrink-0 bg-slate-50 shadow-sm z-20 relative">
                     <div class="notes-tab-group mx-4 mt-4 mb-2">
                         <div class="notes-tab active" onclick="switchNoteTab('weekly', this)">MINGGUAN</div>
                         <div class="notes-tab" onclick="switchNoteTab('monthly', this)">BULANAN</div>
@@ -231,40 +228,44 @@
                     </div>
 
                     <div class="notes-nav-bar relative flex items-center justify-center py-3 px-4">
-
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-4 z-10">
                             <button onclick="navNotes(-1)"
                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300 transition">
                                 <i class="fas fa-chevron-left text-xs"></i>
                             </button>
+                            
                             <span id="notesNavLabel"
-                                class="text-sm font-bold text-slate-800 uppercase tracking-wide w-32 text-center">MINGGU
-                                INI</span>
+                                class="text-sm font-bold text-slate-800 uppercase tracking-wide w-32 text-center">
+                                MINGGU INI
+                            </span>
+                            
                             <button onclick="navNotes(1)"
                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300 transition">
                                 <i class="fas fa-chevron-right text-xs"></i>
                             </button>
                         </div>
-
-                        <button onclick="openCreateNoteModal()"
-                            class="hidden lg:flex absolute right-4 w-9 h-9 items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-700 shadow-md transition transform active:scale-95"
-                            title="Buat Catatan Baru" style="background: var(--premium-gradient);">
-                            <i class="fas fa-plus"></i>
-                        </button>
                     </div>
                 </div>
 
-                <div id="notesListContainer" class="flex-1 overflow-y-auto min-h-0 p-4 pb-24 space-y-3 relative z-0">
-                </div>
+                <div id="notesListContainer" class="flex-1 overflow-y-auto min-h-0 p-4 pb-32 space-y-3 relative z-10 custom-scrollbar">
+                    </div>
 
-                <div
-                    class="lg:hidden flex-shrink-0 p-4 bg-white border-t border-slate-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-20 relative">
+                <div class="hidden lg:flex flex-shrink-0 p-4 bg-white border-t border-slate-200 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-30 relative">
                     <button onclick="openCreateNoteModal()"
                         class="w-full p-3 rounded-xl font-bold text-sm tracking-widest text-white shadow-lg transition hover:opacity-90 hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
                         style="background: var(--premium-gradient);">
-                        <i class="fas fa-plus"></i> BUAT CATATAN
+                        <i class="fas fa-plus"></i> BUAT CATATAN BARU
                     </button>
                 </div>
+
+                <button onclick="openCreateNoteModal()" 
+                    class="lg:hidden fixed bottom-24 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full text-white shadow-2xl shadow-blue-500/40 z-50 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-90 group"
+                    style="background: var(--premium-gradient);">
+                    
+                    <span class="absolute w-full h-full rounded-full border-2 border-white opacity-30 animate-ping"></span>
+                    
+                    <i class="fas fa-plus text-2xl drop-shadow-md group-hover:rotate-90 transition-transform duration-300"></i>
+                </button>
 
             </div>
 
@@ -290,20 +291,17 @@
 
     <!-- FOOTER (MOBILE ONLY) -->
     <footer class="footer-rhadzor lg:hidden">
-        <!-- Left Button: View Switcher -->
         <div id="footerLeftBtn" onclick="toggleNotesView()"
-            class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition cursor-pointer">
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition cursor-pointer flex-shrink-0">
             <i class="fas fa-book text-white text-sm"></i>
         </div>
 
-        <!-- Center: Branding -->
-        <div class="flex items-center gap-2">
+        <div class="flex-1 flex items-center justify-center mx-2">
             <span class="text-sm font-bold tracking-widest text-white uppercase">KALENDER BIZDEV</span>
         </div>
 
-        <!-- Right Button: Action -->
         <div id="footerRightBtn" onclick="handleFooterRightAction()"
-            class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition cursor-pointer">
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition cursor-pointer flex-shrink-0">
             <i class="fas fa-search text-white text-sm"></i>
         </div>
     </footer>
