@@ -73,8 +73,6 @@ function init() {
     renderCalendar();
     updateQuote();
     updateClock();
-    
-    setupSwipeListeners();
 
     // 5. Setup History & Back Button (Insight User)
     // Kita paksa aplikasi mulai dari hash #calendar sebagai base entry.
@@ -2245,42 +2243,37 @@ function closeModal(fromHistory = false) {
 }
 
 function setupSwipe() {
-    // 1. SWIPE KALENDER (Hanya area tanggalan)
-    // Menggunakan swipeArea atau calendarBody sebagai cadangan
-    const area = document.getElementById('swipeArea') || document.getElementById('calendarBody');
+    // 1. SWIPE KALENDER
+    // Mencoba mencari 'swipeArea', jika tidak ada pakai 'calendarBody' atau 'calendarViewContainer'
+    const area = document.getElementById('swipeArea') || 
+                 document.getElementById('calendarBody') || 
+                 document.getElementById('calendarViewContainer');
     
     if (area) {
         let startX = 0;
-        
         area.addEventListener('touchstart', e => { 
             startX = e.changedTouches[0].screenX; 
         }, { passive: true });
         
         area.addEventListener('touchend', e => {
             const endX = e.changedTouches[0].screenX;
-            
-            // Logika Sederhana (Jarak geser 50px)
-            if (endX < startX - 50) changeMonth(1);  // Geser Kiri -> Bulan Depan
-            if (endX > startX + 50) changeMonth(-1); // Geser Kanan -> Bulan Lalu
+            if (endX < startX - 50) changeMonth(1);  // Swipe Kiri
+            if (endX > startX + 50) changeMonth(-1); // Swipe Kanan
         }, { passive: true });
     }
 
-    // 2. SWIPE CATATANKU (Halaman Notes)
+    // 2. SWIPE CATATANKU
     const notesArea = document.getElementById('notesViewContainer');
-    
     if (notesArea) {
         let sX = 0;
-        
         notesArea.addEventListener('touchstart', e => { 
             sX = e.changedTouches[0].screenX; 
         }, { passive: true });
         
         notesArea.addEventListener('touchend', e => {
             const eX = e.changedTouches[0].screenX;
-            
-            // Logika Sederhana
-            if (eX < sX - 50) navNotes(1);  // Geser Kiri -> Minggu Depan
-            if (eX > sX + 50) navNotes(-1); // Geser Kanan -> Minggu Lalu
+            if (eX < sX - 50) navNotes(1);  // Swipe Kiri
+            if (eX > sX + 50) navNotes(-1); // Swipe Kanan
         }, { passive: true });
     }
 }
