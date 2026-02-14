@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bizdev-cal-v4-webp';
+const CACHE_NAME = 'bizdev-cal-v5-swipefix';
 const ASSETS = [
     './',
     './index.html',

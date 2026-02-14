@@ -2243,60 +2243,50 @@ function closeModal(fromHistory = false) {
 }
 
 function setupSwipe() {
-    // 1. SWIPE UNTUK KALENDER
-    // Kita tembak ke container utama agar area swipe luas
-    const calArea = document.getElementById('calendarViewContainer');
-    
-    if (calArea) {
-        let startX = 0;
-        let startY = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
 
-        calArea.addEventListener('touchstart', e => { 
-            startX = e.changedTouches[0].screenX; 
-            startY = e.changedTouches[0].screenY;
-        }, { passive: true });
+    // Pasang sensor di SELURUH LAYAR (Document)
+    document.addEventListener('touchstart', function(e) {
+        // PENGAMAN 1: Jangan swipe jika sedang buka Modal/Popup
+        const modal = document.getElementById('selectorModal');
+        if (modal && modal.classList.contains('active')) return;
+
+        // PENGAMAN 2: Jangan swipe jika sedang scroll area tahun/bulan (di dalam modal)
+        if (e.target.closest('.scroller-col')) return;
+
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', function(e) {
+        // PENGAMAN: Cek Modal lagi
+        const modal = document.getElementById('selectorModal');
+        if (modal && modal.classList.contains('active')) return;
+
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
         
-        calArea.addEventListener('touchend', e => {
-            const endX = e.changedTouches[0].screenX;
-            const endY = e.changedTouches[0].screenY;
+        const diffX = touchStartX - touchEndX;
+        const diffY = touchStartY - touchEndY;
+
+        // LOGIKA SWIPE:
+        // 1. Jarak geser horizontal harus > 50px
+        // 2. Jarak geser horizontal harus lebih dominan dari vertikal (biar gak bentrok sama scroll agenda)
+        if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
             
-            const diffX = startX - endX;
-            const diffY = startY - endY;
-
-            // Logika: Jarak X harus lebih besar dari Y (biar ga bentrok saat scroll agenda)
-            // Dan jarak geser minimal 50px
-            if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
-                if (diffX > 0) changeMonth(1);  // Swipe Kiri -> Bulan Depan
-                if (diffX < 0) changeMonth(-1); // Swipe Kanan -> Bulan Lalu
+            // CEK: Sedang di halaman mana?
+            if (typeof isNotesView !== 'undefined' && isNotesView) {
+                // --- MODE CATATAN ---
+                if (diffX > 0) navNotes(1);  // Geser Kiri -> Next
+                else navNotes(-1);           // Geser Kanan -> Prev
+            } else {
+                // --- MODE KALENDER ---
+                if (diffX > 0) changeMonth(1);  // Geser Kiri -> Bulan Depan
+                else changeMonth(-1);           // Geser Kanan -> Bulan Lalu
             }
-        }, { passive: true });
-    }
-
-    // 2. SWIPE UNTUK CATATANKU
-    const notesArea = document.getElementById('notesViewContainer');
-    
-    if (notesArea) {
-        let sX = 0;
-        let sY = 0;
-        
-        notesArea.addEventListener('touchstart', e => { 
-            sX = e.changedTouches[0].screenX; 
-            sY = e.changedTouches[0].screenY;
-        }, { passive: true });
-        
-        notesArea.addEventListener('touchend', e => {
-            const eX = e.changedTouches[0].screenX;
-            const eY = e.changedTouches[0].screenY;
-            
-            const dX = sX - eX;
-            const dY = sY - eY;
-
-            if (Math.abs(dX) > 50 && Math.abs(dX) > Math.abs(dY)) {
-                if (dX > 0) navNotes(1);  // Swipe Kiri -> Next
-                if (dX < 0) navNotes(-1); // Swipe Kanan -> Prev
-            }
-        }, { passive: true });
-    }
+        }
+    }, { passive: true });
 }
 
 // Fungsi untuk buka-tutup sidebar
