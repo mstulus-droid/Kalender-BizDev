@@ -1456,40 +1456,85 @@ function changeMonth(dir, targetDate = null) {
     }, 250);
 }
 
+// --- FUNGSI PENGATURAN (SETTINGS) - VERSI FIX ---
+
 function openSettings() {
     const overlay = document.getElementById('selectorModal');
     const body = document.getElementById('modalBody');
     const title = document.getElementById('modalTitle');
 
+    overlay.classList.remove('pos-top');
     overlay.classList.add('pos-center');
     title.classList.remove('hidden');
     title.textContent = "PENGATURAN";
-    body.className = "p-4 space-y-4"; // Padding dan spacing antar elemen
+    body.className = "p-4 space-y-4 w-full"; 
+
+    // --- 0. CEK STATUS NOTIFIKASI ---
+    let notifStatus = 'Belum Diizinkan';
+    let notifColor = 'text-slate-500';
+    let btnText = 'AKTIFKAN NOTIFIKASI';
+    let btnClass = 'bg-blue-100 text-blue-600';
+    let notifDesc = 'Diperlukan agar alarm jadwal berbunyi.';
+
+    if (!('Notification' in window)) {
+        notifStatus = 'Tidak Didukung';
+        btnText = 'BROWSER TIDAK SUPPORT';
+        btnClass = 'bg-gray-100 text-gray-400 cursor-not-allowed';
+    } else {
+        if (Notification.permission === 'granted') {
+            notifStatus = 'Sudah Aktif ✅';
+            notifColor = 'text-green-600';
+            btnText = 'TES NOTIFIKASI (BUNYI)';
+            btnClass = 'bg-green-100 text-green-700 hover:bg-green-200';
+            notifDesc = 'Pastikan tab ini tetap terbuka (boleh minimize).';
+        } else if (Notification.permission === 'denied') {
+            notifStatus = 'Diblokir Browser ❌';
+            notifColor = 'text-red-500';
+            btnText = 'LIHAT CARA BUKA BLOKIR';
+            btnClass = 'bg-red-100 text-red-600 hover:bg-red-200';
+            notifDesc = 'Anda harus mengizinkan lewat ikon gembok URL.';
+        }
+    }
+
+    // HTML Bagian Notifikasi
+    const notifSectionHTML = `
+        <div class="p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-sm text-slate-700"><i class="fas fa-bell mr-2 text-slate-400"></i>Alarm</span>
+                <span class="text-[0.65rem] font-bold uppercase tracking-wider ${notifColor}">${notifStatus}</span>
+            </div>
+            <p class="text-[0.7rem] text-slate-500 mb-3 leading-snug">${notifDesc}</p>
+            <button onclick="handleNotificationClick()" class="w-full py-2 rounded-lg text-xs font-bold ${btnClass} transition">
+                ${btnText}
+            </button>
+        </div>
+    `;
 
     // --- 1. KOMPONEN TOGGLE BIASA ---
+    // Definisikan fungsi helper di dalam sini agar scope-nya aman
     const makeToggle = (label, key) => `
-                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <span class="font-bold text-sm text-slate-700">${label}</span>
-                    <input type="checkbox" class="toggle-switch" ${settings[key] ? 'checked' : ''} onchange="toggleSetting('${key}')">
-                </div>`;
+        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="font-bold text-sm text-slate-700">${label}</span>
+            <input type="checkbox" class="toggle-switch" ${settings[key] ? 'checked' : ''} onchange="toggleSetting('${key}')">
+        </div>`;
 
-    // --- 2. KOMPONEN MODE GELAP (ATRAKTIF) ---
+    // --- 2. KOMPONEN MODE GELAP ---
     const darkModeHTML = `
-            <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer" onclick="toggleSetting('darkMode')">
-                <div class="flex flex-col">
-                    <span class="font-bold text-sm text-slate-700">Mode Tampilan</span>
-                    <span class="text-[0.65rem] text-slate-400 font-bold uppercase tracking-wider">${settings.darkMode ? 'Mode Gelap (Malam)' : 'Mode Terang (Siang)'}</span>
-                </div>
-                
-                <div class="theme-toggle-pill">
-                    <i class="fas fa-cloud toggle-bg-icon icon-cloud"></i>
-                    <i class="fas fa-star toggle-bg-icon icon-stars text-[0.5rem]"></i>
-                    <div class="theme-toggle-circle">
-                        <i class="fas ${settings.darkMode ? 'fa-moon' : 'fa-sun'} theme-toggle-icon"></i>
-                    </div>
+        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer" onclick="toggleSetting('darkMode')">
+            <div class="flex flex-col">
+                <span class="font-bold text-sm text-slate-700">Mode Tampilan</span>
+                <span class="text-[0.65rem] text-slate-400 font-bold uppercase tracking-wider">${settings.darkMode ? 'Mode Gelap (Malam)' : 'Mode Terang (Siang)'}</span>
+            </div>
+            
+            <div class="theme-toggle-pill">
+                <i class="fas fa-cloud toggle-bg-icon icon-cloud"></i>
+                <i class="fas fa-star toggle-bg-icon icon-stars text-[0.5rem]"></i>
+                <div class="theme-toggle-circle">
+                    <i class="fas ${settings.darkMode ? 'fa-moon' : 'fa-sun'} theme-toggle-icon"></i>
                 </div>
             </div>
-            `;
+        </div>
+    `;
 
     // --- 3. KOMPONEN TEMA WARNA ---
     let themeButtonsHTML = '';
@@ -1500,73 +1545,87 @@ function openSettings() {
     });
 
     const themeSectionHTML = `
-            <div class="bg-slate-50 rounded-xl p-4 mt-4 border border-slate-100">
-                <span class="block font-bold text-sm text-slate-700 mb-4 text-center">Pilih Tema Warna</span>
-                <div class="grid grid-cols-4 gap-y-4 gap-x-2 justify-items-center mb-2">
-                    ${themeButtonsHTML}
-                </div>
-                <div class="text-center mt-4 pt-2 border-t border-slate-200">
-                    <span class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Tema Aktif</span>
-                    <div class="text-xs font-bold text-slate-700 uppercase tracking-wider mt-1" id="themeNameModal">${themes[currentThemeIndex].name}</div>
-                </div>
-            </div>`;
+        <div class="bg-slate-50 rounded-xl p-4 mt-2 border border-slate-100">
+            <span class="block font-bold text-sm text-slate-700 mb-4 text-center">Pilih Tema Warna</span>
+            <div class="grid grid-cols-4 gap-y-4 gap-x-2 justify-items-center mb-2">
+                ${themeButtonsHTML}
+            </div>
+            <div class="text-center mt-4 pt-2 border-t border-slate-200">
+                <span class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Tema Aktif</span>
+                <div class="text-xs font-bold text-slate-700 uppercase tracking-wider mt-1" id="themeNameModal">${themes[currentThemeIndex].name}</div>
+            </div>
+        </div>`;
 
     // --- 4. KOMPONEN TRANSISI ---
     const transitionHTML = `
-            <div class="pt-2 mt-2">
-                <span class="block font-bold text-[0.65rem] text-slate-400 uppercase tracking-widest mb-2 px-1">Efek Transisi</span>
-                <select class="premium-select" onchange="updateTransition(this.value)">
-                    <option value="none" ${settings.transitionType === 'none' ? 'selected' : ''}>None (Instant)</option>
-                    <option value="slide" ${settings.transitionType === 'slide' ? 'selected' : ''}>Slide</option>
-                    <option value="cube" ${settings.transitionType === 'cube' ? 'selected' : ''}>Cube Flip</option>
-                    <option value="fade" ${settings.transitionType === 'fade' ? 'selected' : ''}>Fade</option>
-                    <option value="zoom" ${settings.transitionType === 'zoom' ? 'selected' : ''}>Zoom</option>
-                    <option value="flip" ${settings.transitionType === 'flip' ? 'selected' : ''}>Flip Card</option>
-                </select>
-            </div>`;
+        <div class="pt-2 mt-2 px-1">
+            <span class="block font-bold text-[0.65rem] text-slate-400 uppercase tracking-widest mb-2">Efek Transisi</span>
+            <select class="premium-select w-full" onchange="updateTransition(this.value)">
+                <option value="none" ${settings.transitionType === 'none' ? 'selected' : ''}>None (Instant)</option>
+                <option value="slide" ${settings.transitionType === 'slide' ? 'selected' : ''}>Slide</option>
+                <option value="cube" ${settings.transitionType === 'cube' ? 'selected' : ''}>Cube Flip</option>
+                <option value="fade" ${settings.transitionType === 'fade' ? 'selected' : ''}>Fade</option>
+                <option value="zoom" ${settings.transitionType === 'zoom' ? 'selected' : ''}>Zoom</option>
+                <option value="flip" ${settings.transitionType === 'flip' ? 'selected' : ''}>Flip Card</option>
+            </select>
+        </div>`;
 
-    const notifHTML = `
-        <div class="mt-4 p-3 bg-white border border-slate-200 rounded-xl flex justify-between items-center shadow-sm">
-            <div class="flex flex-col">
-                <span class="font-bold text-sm text-slate-700">Izin Notifikasi</span>
-                <span class="text-[0.65rem] text-slate-400">Diperlukan untuk alarm jadwal</span>
-            </div>
-            <button onclick="requestNotificationPermission()" class="bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-200 transition">
-                IZINKAN
-            </button>
-        </div>
-    `;
-
+    // --- 5. KOMPONEN BACKUP ---
     const backupHTML = `
-            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-6 mb-4">
-                <span class="block font-bold text-sm text-blue-800 mb-2">Cadangkan Data</span>
-                <p class="text-xs text-blue-600 mb-3 leading-relaxed">Simpan data catatan agar aman atau pulihkan dari file sebelumnya.</p>
-                <div class="flex gap-2">
-                    <button onclick="exportData()" class="flex-1 bg-white border border-blue-200 text-blue-700 py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-50 transition flex items-center justify-center gap-2">
-                        <i class="fas fa-download"></i> BACKUP
-                    </button>
-                    <label class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-700 transition text-center cursor-pointer flex items-center justify-center gap-2">
-                        <i class="fas fa-upload"></i> RESTORE
-                        <input type="file" class="hidden" accept=".json" onchange="importData(this)">
-                    </label>
-                </div>
-            </div>`;
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-6 mb-4">
+            <span class="block font-bold text-sm text-blue-800 mb-2">Cadangkan Data</span>
+            <p class="text-xs text-blue-600 mb-3 leading-relaxed">Simpan data catatan agar aman atau pulihkan dari file sebelumnya.</p>
+            <div class="flex gap-2">
+                <button onclick="exportData()" class="flex-1 bg-white border border-blue-200 text-blue-700 py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-50 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-download"></i> BACKUP
+                </button>
+                <label class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-700 transition text-center cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fas fa-upload"></i> RESTORE
+                    <input type="file" class="hidden" accept=".json" onchange="importData(this)">
+                </label>
+            </div>
+        </div>`;
 
-    // --- PENYUSUNAN AKHIR ---
-    // Urutan: Dark Mode -> Toggle Lain -> Tema Warna -> Transisi -> Backup
+    // --- PENYUSUNAN AKHIR (PERBAIKAN) ---
+    // Di sini tadi errornya. Sekarang sudah diperbaiki variabelnya.
     let finalHTML =
+        notifSectionHTML +     // <--- Variabel sudah benar
         darkModeHTML +
         makeToggle('Kalender Hijriah', 'showHijri') +
         makeToggle('Hari Pasaran', 'showPasaran') +
         makeToggle('Hari Peringatan', 'showObservances') +
         themeSectionHTML +
         transitionHTML +
-        notifHTML +
-        backupHTML + // <--- Posisi Baru (Paling Bawah)
-        '<div class="h-6"></div>'; // Spacer kecil di ujung bawah
+        backupHTML + 
+        '<div class="h-6"></div>';
 
     body.innerHTML = finalHTML;
     openModal('pos-center');
+}
+
+// Pastikan fungsi ini juga ada di main.js (di luar openSettings)
+function handleNotificationClick() {
+    if (!('Notification' in window)) return;
+
+    if (Notification.permission === 'granted') {
+        new Notification('Tes Notifikasi Berhasil! 🔔', {
+            body: 'Sistem alarm Anda berfungsi normal.',
+            icon: 'icons/icon_192.png',
+            vibrate: [200, 100, 200]
+        });
+    } else if (Notification.permission === 'denied') {
+        alert('⚠️ AKSES DIBLOKIR BROWSER\n\nCara memperbaiki:\n1. Klik ikon Gembok/Pengaturan di sebelah URL (alamat web).\n2. Pilih "Permissions" atau "Izin".\n3. Cari "Notifications" dan pilih "Allow/Izinkan".\n4. Atau klik "Reset Permissions".\n5. Refresh halaman ini.');
+    } else {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                new Notification('Hore! Notifikasi Aktif 🔔', {
+                    body: 'Kami akan mengingatkan jadwal Anda.',
+                    icon: 'icons/icon_192.png'
+                });
+                openSettings(); // Refresh tampilan
+            }
+        });
+    }
 }
 
 // --- UPDATE FUNGSI TOGGLE SETTING ---
