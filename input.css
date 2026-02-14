@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+  /* Mendaftarkan warna 'primary' agar bisa dipanggil dengan class text-primary, bg-primary */
+  --color-primary: var(--accent-color);
+
+  /* Mengatur screen breakpoint agar sama dengan settingan lama Anda */
+  --breakpoint-lg: 1024px;
+}@import "tailwindcss";
