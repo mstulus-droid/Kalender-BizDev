@@ -1568,7 +1568,24 @@ function openSettings() {
     title.textContent = "PENGATURAN";
     body.className = "p-4 space-y-4 w-full"; 
 
-    // --- 1. LOGIKA STATUS NOTIFIKASI ---
+    // --- 0. TAMBAHAN: LOGIKA TOMBOL LOGIN (UNTUK MOBILE) ---
+    // Logika ini untuk mengubah warna & teks tombol berdasarkan status login
+    let loginBtnColor = currentUser ? "bg-red-600 text-white hover:bg-red-700" : "bg-blue-600 text-white hover:bg-blue-700";
+    let loginBtnText = currentUser ? `LOGOUT (${currentUser.displayName.split(' ')[0]})` : "LOGIN GOOGLE";
+    let loginIcon = currentUser ? "fas fa-sign-out-alt" : "fab fa-google";
+    // Aksi: Jalankan toggleGoogleAuth lalu tutup modal pengaturan
+    let loginAction = "toggleGoogleAuth(); closeModal();";
+
+    const loginSectionHTML = `
+        <div class="mb-2">
+            <button onclick="${loginAction}" class="w-full ${loginBtnColor} p-3 rounded-xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 transition active:scale-95">
+                <i class="${loginIcon}"></i>
+                <span>${loginBtnText}</span>
+            </button>
+        </div>
+    `;
+
+    // --- 1. LOGIKA STATUS NOTIFIKASI (TETAP SAMA) ---
     let isNotifOn = false;
     let notifLabel = "Belum Aktif";
     let notifSub = "Ketuk untuk mengaktifkan";
@@ -1589,7 +1606,7 @@ function openSettings() {
         notifSub = "Izinkan lewat pengaturan browser";
     }
 
-    // --- 2. HTML BARU: DESAIN SEPERTI MODE TAMPILAN ---
+    // --- 2. HTML NOTIFIKASI (TETAP SAMA) ---
     const notifSectionHTML = `
         <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer ${toggleClass}" onclick="handleNotificationClick()">
             <div class="flex flex-col">
@@ -1613,7 +1630,7 @@ function openSettings() {
             <input type="checkbox" class="toggle-switch" ${settings[key] ? 'checked' : ''} onchange="toggleSetting('${key}')">
         </div>`;
 
-    // --- 2. KOMPONEN MODE GELAP (TETAP SAMA PERSIS) ---
+    // --- 2. KOMPONEN MODE GELAP (TETAP SAMA) ---
     const darkModeHTML = `
         <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer" onclick="toggleSetting('darkMode')">
             <div class="flex flex-col">
@@ -1665,13 +1682,11 @@ function openSettings() {
             </select>
         </div>`;
 
-    // --- 5. KOMPONEN INSTALL APP (BARU DITAMBAHKAN DI SINI) ---
-    // Logika: Cek apakah sudah install atau belum
+    // --- 5. KOMPONEN INSTALL APP (TETAP SAMA) ---
     let installHTML = '';
     const appInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
     if (appInstalled) {
-        // Tampilan jika SUDAH install
         installHTML = `
             <div class="bg-green-50 border border-green-100 rounded-xl p-3 mt-4 flex items-center gap-3">
                 <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm">
@@ -1683,7 +1698,6 @@ function openSettings() {
                 </div>
             </div>`;
     } else {
-        // Tampilan jika BELUM install (Tombol Hitam)
         installHTML = `
             <div class="bg-slate-900 text-white rounded-xl p-4 mt-4 shadow-lg">
                 <div class="flex justify-between items-center mb-2">
@@ -1716,8 +1730,10 @@ function openSettings() {
             </div>
         </div>`;
 
-    // --- PENYUSUNAN AKHIR ---
+    // --- PENYUSUNAN AKHIR (Final HTML) ---
+    // Di sini kita tambahkan loginSectionHTML di paling atas!
     let finalHTML =
+        loginSectionHTML + // <--- INI DIA TOMBOL LOGIN MOBILE
         notifSectionHTML +
         darkModeHTML +
         makeToggle('Kalender Hijriah', 'showHijri') +
@@ -1725,7 +1741,7 @@ function openSettings() {
         makeToggle('Hari Peringatan', 'showObservances') +
         themeSectionHTML +
         transitionHTML +
-        installHTML + // <--- SELIPKAN MENU INSTALL DI SINI
+        installHTML + 
         backupHTML + 
         '<div class="h-6"></div>';
 
