@@ -2288,11 +2288,6 @@ body.dark-mode .notes-view-container .rounded-full.text-amber-600 {
     min-width: 48px;    /* Lebar Minimal (saat bulat) */
     padding: 0 6px;     /* Padding default saat melebar */
     border-radius: 99px;
-    
-    /* Flexbox properties untuk centering */
-    display: flex;
-    align-items: center;
-    justify-content: center;
 
     /* Transisi Halus */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2324,4 +2319,32 @@ body.dark-mode .notes-view-container .rounded-full.text-amber-600 {
 }
 .group-hover\:animate-shimmer:hover {
     animation: shimmer 1.5s infinite;
+}
+
+/* === SPRINGY FEEDBACK KHUSUS MOBILE === */
+
+@media (hover: none) {
+    /* Efek saat jari menempel (Press Down) */
+    .day-cell:active:not(.other-month) {
+        transform: scale(0.9) !important; /* Mengecil seperti ditekan */
+        transition: transform 0.1s ease-out;
+        background-color: rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* Khusus untuk sel hari ini agar tetap terlihat premium saat ditekan */
+    .day-cell.today:active {
+        transform: scale(0.95) !important;
+        filter: brightness(0.9);
+    }
+}
+
+/* Animasi tambahan saat jari dilepas (The Spring Back) */
+@keyframes spring-back {
+    0% { transform: scale(0.9); }
+    50% { transform: scale(1.05); } /* Sedikit membal membesar */
+    100% { transform: scale(1); }
+}
+
+.cell-tap-animate {
+    animation: spring-back 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }

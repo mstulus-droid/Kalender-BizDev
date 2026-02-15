@@ -11,6 +11,8 @@ let isNotesView = false;
 
 let currentNoteMode = 'weekly';
 let currentNoteDate = new Date();
+// Variabel untuk menyimpan argument terakhir showDetail agar bisa refresh modal
+let lastDetailArgs = null;
 
 // Mengambil data dari localStorage, jika kosong pakai default
 let settings = JSON.parse(localStorage.getItem('rhadzCalSettings')) || {
@@ -1252,11 +1254,31 @@ function renderCalendar() {
             }
 
             // OnClick Event
-            cell.onclick = () => showDetail(actualDay, actualMonth, actualYear, dayNames[dayOfWeek], pasaranArr[pasaranIdx], hDayModal, hMonthModal, hYearModal, holidayName, cutiName, observanceName, isSunday, birthdayData, anniversaryData, isHardcodedStatus);
-        }
-        grid.appendChild(cell);
+            // OnClick Event
+            cell.onclick = () => {
+                // --- TAMBAHAN LOGIKA ANIMASI KENYAL ---
+                if (window.innerWidth < 1024) { 
+                    cell.classList.remove('cell-tap-animate');
+                    void cell.offsetWidth; // Trigger reflow
+                    cell.classList.add('cell-tap-animate');
+                    
+                    if (navigator.vibrate) navigator.vibrate(10); 
+
+                    // Berikan delay 100ms agar user bisa melihat selnya "membal" 
+                    // sebelum tertutup oleh popup detail
+                    setTimeout(() => {
+                        showDetail(actualDay, actualMonth, actualYear, dayNames[dayOfWeek], pasaranArr[pasaranIdx], hDayModal, hMonthModal, hYearModal, holidayName, cutiName, observanceName, isSunday, birthdayData, anniversaryData, isHardcodedStatus);
+                    }, 100);
+                } else {
+                    // Desktop: Langsung buka tanpa animasi/delay
+                    showDetail(actualDay, actualMonth, actualYear, dayNames[dayOfWeek], pasaranArr[pasaranIdx], hDayModal, hMonthModal, hYearModal, holidayName, cutiName, observanceName, isSunday, birthdayData, anniversaryData, isHardcodedStatus);
+                }
+            }; // Tutup cell.onclick
+
+            // Pastikan grid.appendChild berada DI LUAR cell.onclick
+            grid.appendChild(cell);
         // --- AKHIR GANTI ISI LOOP ---
-    }
+    }}
     renderEventsList(month, year);
     if (highlightTriggered) setTimeout(() => { highlightTriggered = false; }, 2000);
 }
@@ -2078,9 +2100,6 @@ function jumpToSelectedMonthYear() {
         renderCalendar(); updateQuote(); closeModal();
     }
 }
-
-// Variabel untuk menyimpan argument terakhir showDetail agar bisa refresh modal
-let lastDetailArgs = null;
 
 // Perhatikan penambahan parameter 'isHardcoded' di posisi terakhir
 function showDetail(d, m, y, dayName, pasaranName, hDate, hMonth, hYear, holiday, cutiName, observanceName, isSunday, birthdayData, anniversaryData, isHardcoded) {
