@@ -2280,36 +2280,42 @@ body.dark-mode .notes-view-container .rounded-full.text-amber-600 {
 
 /* === FAB EXPANDABLE PILL === */
 
+/* === FAB EXPANDABLE PILL (FIXED CENTER) === */
+
 .fab-expandable {
-    background: var(--premium-gradient); /* Tetap pakai gradien premium */
-    height: 48px; /* Tinggi tetap */
-    padding: 0 6px 0 6px; /* Padding kiri-kanan */
-    border-radius: 99px; /* Bentuk kapsul penuh */
-    min-width: 48px; /* Agar saat mengecil jadi bulat sempurna */
+    background: var(--premium-gradient);
+    height: 48px;       /* Tinggi Tetap */
+    min-width: 48px;    /* Lebar Minimal (saat bulat) */
+    padding: 0 6px;     /* Padding default saat melebar */
+    border-radius: 99px;
     
-    /* Transisi untuk lebar dan padding */
+    /* Flexbox properties untuk centering */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Transisi Halus */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fab-text {
-    max-width: 150px; /* Lebar maksimal teks */
+    max-width: 150px; /* Lebar maksimal teks saat muncul */
     opacity: 1;
-    transition: all 0.3s ease; /* Transisi menghilang */
-    margin-left: 4px;
+    margin-left: 0.5rem; /* Setara ml-2 (8px) */
+    transition: all 0.3s ease;
 }
 
-/* --- STATE: SHRINK (MENGECIL) --- */
-/* Class ini akan ditambahkan via JS saat scroll ke bawah */
+/* --- STATE: SHRINK (MENGECIL JADI BULAT) --- */
 .fab-expandable.shrink {
-    padding: 0; /* Hapus padding agar ikon pas di tengah */
-    width: 48px; /* Paksa lebar jadi kotak (bulat karena radius) */
+    width: 48px !important;  /* Kunci lebar jadi 48px */
+    padding: 0 !important;   /* Hapus padding container */
 }
 
 .fab-expandable.shrink .fab-text {
-    max-width: 0; /* Hilangkan lebar teks */
-    opacity: 0;   /* Hilangkan transparansi */
-    margin: 0;    /* Hapus margin */
-    padding: 0;
+    max-width: 0;      /* Lebar teks jadi 0 */
+    opacity: 0;        /* Teks transparan */
+    margin-left: 0;    /* KUNCI: Margin dihapus agar ikon balik ke tengah */
+    padding-right: 0;  /* Hapus padding kanan teks (pr-2) */
 }
 
 /* Animasi Kilau saat disentuh (opsional) */
