@@ -466,11 +466,7 @@ function toggleNotesView(fromHistory = false) {
 }
 
 function handleFooterRightAction() {
-    if (isNotesView) {
-        openCreateNoteModal();
-    } else {
-        openDateSearch();
-    }
+    openDateSearch();
 }
 
 function switchNoteTab(mode, tabElement) {
