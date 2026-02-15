@@ -1460,37 +1460,78 @@ function openSettings() {
     const body = document.getElementById('modalBody');
     const title = document.getElementById('modalTitle');
 
+    overlay.classList.remove('pos-top');
     overlay.classList.add('pos-center');
     title.classList.remove('hidden');
     title.textContent = "PENGATURAN";
-    body.className = "p-4 space-y-4"; // Padding dan spacing antar elemen
+    body.className = "p-4 space-y-4 w-full"; 
 
-    // --- 1. KOMPONEN TOGGLE BIASA ---
+    // --- 0. CEK STATUS NOTIFIKASI (TETAP SAMA) ---
+    let notifStatus = 'Belum Diizinkan';
+    let notifColor = 'text-slate-500';
+    let btnText = 'AKTIFKAN NOTIFIKASI';
+    let btnClass = 'bg-blue-100 text-blue-600';
+    let notifDesc = 'Diperlukan agar alarm jadwal berbunyi.';
+
+    if (!('Notification' in window)) {
+        notifStatus = 'Tidak Didukung';
+        btnText = 'BROWSER TIDAK SUPPORT';
+        btnClass = 'bg-gray-100 text-gray-400 cursor-not-allowed';
+    } else {
+        if (Notification.permission === 'granted') {
+            notifStatus = 'Sudah Aktif ✅';
+            notifColor = 'text-green-600';
+            btnText = 'TES NOTIFIKASI (BUNYI)';
+            btnClass = 'bg-green-100 text-green-700 hover:bg-green-200';
+            notifDesc = 'Pastikan tab ini tetap terbuka (boleh minimize).';
+        } else if (Notification.permission === 'denied') {
+            notifStatus = 'Diblokir Browser ❌';
+            notifColor = 'text-red-500';
+            btnText = 'LIHAT CARA BUKA BLOKIR';
+            btnClass = 'bg-red-100 text-red-600 hover:bg-red-200';
+            notifDesc = 'Anda harus mengizinkan lewat ikon gembok URL.';
+        }
+    }
+
+    const notifSectionHTML = `
+        <div class="p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-sm text-slate-700"><i class="fas fa-bell mr-2 text-slate-400"></i>Alarm</span>
+                <span class="text-[0.65rem] font-bold uppercase tracking-wider ${notifColor}">${notifStatus}</span>
+            </div>
+            <p class="text-[0.7rem] text-slate-500 mb-3 leading-snug">${notifDesc}</p>
+            <button onclick="handleNotificationClick()" class="w-full py-2 rounded-lg text-xs font-bold ${btnClass} transition">
+                ${btnText}
+            </button>
+        </div>
+    `;
+
+    // --- 1. KOMPONEN TOGGLE BIASA (TETAP SAMA) ---
     const makeToggle = (label, key) => `
-                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <span class="font-bold text-sm text-slate-700">${label}</span>
-                    <input type="checkbox" class="toggle-switch" ${settings[key] ? 'checked' : ''} onchange="toggleSetting('${key}')">
-                </div>`;
+        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="font-bold text-sm text-slate-700">${label}</span>
+            <input type="checkbox" class="toggle-switch" ${settings[key] ? 'checked' : ''} onchange="toggleSetting('${key}')">
+        </div>`;
 
-    // --- 2. KOMPONEN MODE GELAP (ATRAKTIF) ---
+    // --- 2. KOMPONEN MODE GELAP (TETAP SAMA PERSIS) ---
     const darkModeHTML = `
-            <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer" onclick="toggleSetting('darkMode')">
-                <div class="flex flex-col">
-                    <span class="font-bold text-sm text-slate-700">Mode Tampilan</span>
-                    <span class="text-[0.65rem] text-slate-400 font-bold uppercase tracking-wider">${settings.darkMode ? 'Mode Gelap (Malam)' : 'Mode Terang (Siang)'}</span>
-                </div>
-                
-                <div class="theme-toggle-pill">
-                    <i class="fas fa-cloud toggle-bg-icon icon-cloud"></i>
-                    <i class="fas fa-star toggle-bg-icon icon-stars text-[0.5rem]"></i>
-                    <div class="theme-toggle-circle">
-                        <i class="fas ${settings.darkMode ? 'fa-moon' : 'fa-sun'} theme-toggle-icon"></i>
-                    </div>
+        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer" onclick="toggleSetting('darkMode')">
+            <div class="flex flex-col">
+                <span class="font-bold text-sm text-slate-700">Mode Tampilan</span>
+                <span class="text-[0.65rem] text-slate-400 font-bold uppercase tracking-wider">${settings.darkMode ? 'Mode Gelap (Malam)' : 'Mode Terang (Siang)'}</span>
+            </div>
+            
+            <div class="theme-toggle-pill">
+                <i class="fas fa-cloud toggle-bg-icon icon-cloud"></i>
+                <i class="fas fa-star toggle-bg-icon icon-stars text-[0.5rem]"></i>
+                <div class="theme-toggle-circle">
+                    <i class="fas ${settings.darkMode ? 'fa-moon' : 'fa-sun'} theme-toggle-icon"></i>
                 </div>
             </div>
-            `;
+        </div>
+    `;
 
-    // --- 3. KOMPONEN TEMA WARNA ---
+    // --- 3. KOMPONEN TEMA WARNA (TETAP SAMA) ---
     let themeButtonsHTML = '';
     themes.forEach((t, i) => {
         const isActive = i === currentThemeIndex;
@@ -1499,57 +1540,94 @@ function openSettings() {
     });
 
     const themeSectionHTML = `
-            <div class="bg-slate-50 rounded-xl p-4 mt-4 border border-slate-100">
-                <span class="block font-bold text-sm text-slate-700 mb-4 text-center">Pilih Tema Warna</span>
-                <div class="grid grid-cols-4 gap-y-4 gap-x-2 justify-items-center mb-2">
-                    ${themeButtonsHTML}
-                </div>
-                <div class="text-center mt-4 pt-2 border-t border-slate-200">
-                    <span class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Tema Aktif</span>
-                    <div class="text-xs font-bold text-slate-700 uppercase tracking-wider mt-1" id="themeNameModal">${themes[currentThemeIndex].name}</div>
-                </div>
-            </div>`;
+        <div class="bg-slate-50 rounded-xl p-4 mt-2 border border-slate-100">
+            <span class="block font-bold text-sm text-slate-700 mb-4 text-center">Pilih Tema Warna</span>
+            <div class="grid grid-cols-4 gap-y-4 gap-x-2 justify-items-center mb-2">
+                ${themeButtonsHTML}
+            </div>
+            <div class="text-center mt-4 pt-2 border-t border-slate-200">
+                <span class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Tema Aktif</span>
+                <div class="text-xs font-bold text-slate-700 uppercase tracking-wider mt-1" id="themeNameModal">${themes[currentThemeIndex].name}</div>
+            </div>
+        </div>`;
 
-    // --- 4. KOMPONEN TRANSISI ---
+    // --- 4. KOMPONEN TRANSISI (TETAP SAMA) ---
     const transitionHTML = `
-            <div class="pt-2 mt-2">
-                <span class="block font-bold text-[0.65rem] text-slate-400 uppercase tracking-widest mb-2 px-1">Efek Transisi</span>
-                <select class="premium-select" onchange="updateTransition(this.value)">
-                    <option value="none" ${settings.transitionType === 'none' ? 'selected' : ''}>None (Instant)</option>
-                    <option value="slide" ${settings.transitionType === 'slide' ? 'selected' : ''}>Slide</option>
-                    <option value="cube" ${settings.transitionType === 'cube' ? 'selected' : ''}>Cube Flip</option>
-                    <option value="fade" ${settings.transitionType === 'fade' ? 'selected' : ''}>Fade</option>
-                    <option value="zoom" ${settings.transitionType === 'zoom' ? 'selected' : ''}>Zoom</option>
-                    <option value="flip" ${settings.transitionType === 'flip' ? 'selected' : ''}>Flip Card</option>
-                </select>
-            </div>`;
+        <div class="pt-2 mt-2 px-1">
+            <span class="block font-bold text-[0.65rem] text-slate-400 uppercase tracking-widest mb-2">Efek Transisi</span>
+            <select class="premium-select w-full" onchange="updateTransition(this.value)">
+                <option value="none" ${settings.transitionType === 'none' ? 'selected' : ''}>None (Instant)</option>
+                <option value="slide" ${settings.transitionType === 'slide' ? 'selected' : ''}>Slide</option>
+                <option value="cube" ${settings.transitionType === 'cube' ? 'selected' : ''}>Cube Flip</option>
+                <option value="fade" ${settings.transitionType === 'fade' ? 'selected' : ''}>Fade</option>
+                <option value="zoom" ${settings.transitionType === 'zoom' ? 'selected' : ''}>Zoom</option>
+                <option value="flip" ${settings.transitionType === 'flip' ? 'selected' : ''}>Flip Card</option>
+            </select>
+        </div>`;
 
-    const backupHTML = `
-            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-6 mb-4">
-                <span class="block font-bold text-sm text-blue-800 mb-2">Cadangkan Data</span>
-                <p class="text-xs text-blue-600 mb-3 leading-relaxed">Simpan data catatan agar aman atau pulihkan dari file sebelumnya.</p>
-                <div class="flex gap-2">
-                    <button onclick="exportData()" class="flex-1 bg-white border border-blue-200 text-blue-700 py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-50 transition flex items-center justify-center gap-2">
-                        <i class="fas fa-download"></i> BACKUP
-                    </button>
-                    <label class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-700 transition text-center cursor-pointer flex items-center justify-center gap-2">
-                        <i class="fas fa-upload"></i> RESTORE
-                        <input type="file" class="hidden" accept=".json" onchange="importData(this)">
-                    </label>
+    // --- 5. KOMPONEN INSTALL APP (BARU DITAMBAHKAN DI SINI) ---
+    // Logika: Cek apakah sudah install atau belum
+    let installHTML = '';
+    const appInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    if (appInstalled) {
+        // Tampilan jika SUDAH install
+        installHTML = `
+            <div class="bg-green-50 border border-green-100 rounded-xl p-3 mt-4 flex items-center gap-3">
+                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-sm text-green-800">Aplikasi Terpasang</span>
+                    <span class="text-[0.65rem] text-green-600">Versi PWA Aktif</span>
                 </div>
             </div>`;
+    } else {
+        // Tampilan jika BELUM install (Tombol Hitam)
+        installHTML = `
+            <div class="bg-slate-900 text-white rounded-xl p-4 mt-4 shadow-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold text-sm"><i class="fas fa-download mr-2"></i>Install Aplikasi</span>
+                    <span class="text-[0.65rem] bg-white/20 px-2 py-0.5 rounded text-white">Gratis</span>
+                </div>
+                <p class="text-[0.7rem] text-slate-300 mb-3">Pasang agar lebih cepat & offline.</p>
+                <button onclick="triggerInstallFromSettings()" class="w-full bg-white text-slate-900 py-2 rounded-lg text-xs font-bold hover:bg-slate-100 transition shadow-sm">
+                    INSTALL SEKARANG
+                </button>
+            </div>`;
+    }
+
+    // --- 6. KOMPONEN BACKUP (TETAP SAMA) ---
+    const backupHTML = `
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-6 mb-4">
+            <span class="block font-bold text-sm text-blue-800 mb-2">Cadangkan Data</span>
+            <p class="text-xs text-blue-600 mb-3 leading-relaxed">Simpan data catatan agar aman atau pulihkan dari file sebelumnya.</p>
+            <div class="flex gap-2">
+                <button onclick="exportData()" class="flex-1 bg-white border border-blue-200 text-blue-700 py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-50 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-download"></i> BACKUP
+                </button>
+                <label class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-bold text-xs shadow-sm hover:bg-blue-700 transition text-center cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fas fa-upload"></i> RESTORE
+                    <input type="file" class="hidden" accept=".json" onchange="importData(this)">
+                </label>
+            </div>
+            <div class="text-center mt-3">
+                 <span class="text-[0.65rem] text-blue-400/70 font-mono">Versi 4.2 • Offline Ready</span>
+            </div>
+        </div>`;
 
     // --- PENYUSUNAN AKHIR ---
-    // Urutan: Dark Mode -> Toggle Lain -> Tema Warna -> Transisi -> Backup
     let finalHTML =
+        notifSectionHTML +
         darkModeHTML +
         makeToggle('Kalender Hijriah', 'showHijri') +
         makeToggle('Hari Pasaran', 'showPasaran') +
         makeToggle('Hari Peringatan', 'showObservances') +
         themeSectionHTML +
         transitionHTML +
-        backupHTML + // <--- Posisi Baru (Paling Bawah)
-        '<div class="h-6"></div>'; // Spacer kecil di ujung bawah
+        installHTML + // <--- SELIPKAN MENU INSTALL DI SINI
+        backupHTML + 
+        '<div class="h-6"></div>';
 
     body.innerHTML = finalHTML;
     openModal('pos-center');
@@ -2366,3 +2444,57 @@ document.addEventListener('DOMContentLoaded', function () {
     // Kamu perlu inject JavaScript Interface, tapi biasanya onpopstate di atas sudah cukup
     // jika Android Overridenya benar.
 });
+
+// --- SISTEM INSTALL PWA (SILENT MODE) ---
+
+let deferredPrompt; // Variabel penyimpan event install
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const iosModal = document.getElementById('iosInstallModal');
+
+// 1. Event Listener Chrome/Android (Simpan event, jangan munculkan banner)
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e; // Simpan event ke variabel global
+    // Kita tidak memanggil UI apa-apa di sini (Silent)
+});
+
+// 2. Fungsi Eksekusi Install (Dipanggil dari Tombol Settings)
+function triggerInstallFromSettings() {
+    if (isStandalone) {
+        alert('Aplikasi sudah terinstall.');
+        return;
+    }
+
+    if (isIOS) {
+        // Khusus iOS: Buka Modal Panduan
+        if(iosModal) {
+            iosModal.classList.remove('hidden');
+            iosModal.classList.add('flex');
+            // Tutup modal settings biar fokus ke panduan
+            closeModal();
+        }
+    } else if (deferredPrompt) {
+        // Android/PC: Panggil Prompt Asli
+        deferredPrompt.prompt();
+        
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User menerima instalasi');
+                deferredPrompt = null;
+                openSettings(); // Refresh halaman settings
+            }
+        });
+    } else {
+        // Fallback jika browser tidak support PWA otomatis
+        alert('Untuk menginstall: Buka menu browser (titik tiga) > Pilih "Install App" atau "Add to Home Screen".');
+    }
+}
+
+// 3. Fungsi Tutup Modal iOS
+function closeIosModal() {
+    if(iosModal) {
+        iosModal.classList.remove('flex');
+        iosModal.classList.add('hidden');
+    }
+}
