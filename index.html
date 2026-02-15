@@ -373,30 +373,30 @@
         </div>
     </div>
 
-<script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-      import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-      import { getFirestore, doc, setDoc, getDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    <script type="module">
+    // Alamat yang sudah diverifikasi aktif
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-      const firebaseConfig = {
+    const firebaseConfig = {
         apiKey: "AIzaSyA9bBPxLtZB4qC4gJFEmX4XT3kiWO1ntiY",
         authDomain: "bizdev-calendar.firebaseapp.com",
         projectId: "bizdev-calendar",
         storageBucket: "bizdev-calendar.firebasestorage.app",
         messagingSenderId: "73788759775",
         appId: "1:73788759775:web:436d2fca15bfb8050b136a"
-      };
+    };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-      const provider = new GoogleAuthProvider();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
-      // Ekspos agar main.js bisa pakai
-      window.fbAuth = { auth, provider, signInWithPopup, signOut, onAuthStateChanged };
-      window.fbDB = { db, doc, setDoc, getDoc, collection };
-      
-      console.log("Firebase Berhasil Dimuat!");
+    window.fbAuth = { auth, provider, signInWithPopup, signOut, onAuthStateChanged };
+    window.fbDB = { db, doc, setDoc, getDoc, collection };
+    
+    console.log("Koneksi Firebase Berhasil!");
     </script>
 
     <script src="calendar-data.js"></script>
