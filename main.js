@@ -94,6 +94,30 @@ function init() {
         const transSelect = document.getElementById('transitionSelect');
         if (transSelect) transSelect.value = settings.transitionType;
     }, 100);
+
+    setupFabScroll();
+}
+
+function setupFabScroll() {
+    const container = document.getElementById('notesListContainer');
+    const fab = document.getElementById('floatingNotesBtn');
+    let lastScrollTop = 0;
+
+    if (!container || !fab) return;
+
+    container.addEventListener('scroll', () => {
+        const scrollTop = container.scrollTop;
+        
+        // Logika: Jika scroll lebih dari 50px DAN arah ke bawah -> Kecilkan
+        if (scrollTop > lastScrollTop && scrollTop > 50) {
+            fab.classList.add('shrink');
+        } else {
+            // Jika scroll ke atas -> Lebarkan kembali
+            fab.classList.remove('shrink');
+        }
+        
+        lastScrollTop = scrollTop;
+    }, { passive: true });
 }
 
 function syncSettingsUI() {
@@ -478,6 +502,8 @@ function renderNotesList() {
     const storedNotes = getStoredNotes();
     let notesFound = [];
 
+    // --- LOGIKA PENENTUAN WAKTU (MINGGUAN/BULANAN/TAHUNAN) ---
+    // (Bagian ini tidak berubah, tetap sama seperti sebelumnya)
     if (currentNoteMode === 'weekly') {
         const day = currentNoteDate.getDay();
         const startOfWeek = new Date(currentNoteDate);
@@ -504,6 +530,8 @@ function renderNotesList() {
     }
 
     label.textContent = labelText;
+
+    // --- PENGUMPULAN DATA CATATAN ---
     Object.keys(storedNotes).forEach(dateKey => {
         const [y, m, d] = dateKey.split('-').map(Number);
         const noteDate = new Date(y, m, d);
@@ -511,12 +539,13 @@ function renderNotesList() {
         const startTime = new Date(startD.getFullYear(), startD.getMonth(), startD.getDate()).getTime();
         const endTime = new Date(endD.getFullYear(), endD.getMonth(), endD.getDate()).getTime();
         if (checkTime >= startTime && checkTime <= endTime) {
-            // IMPORTANT: storedNotes[dateKey] is now ARRAY of OBJECTS
             notesFound.push({ date: noteDate, items: storedNotes[dateKey], key: dateKey });
         }
     });
 
     notesFound.sort((a, b) => a.date - b.date);
+
+    // --- TAMPILAN KOSONG ---
     if (notesFound.length === 0) {
         container.innerHTML = `
                 <div class="flex flex-col items-center justify-center h-48 opacity-50">
@@ -527,7 +556,7 @@ function renderNotesList() {
         return;
     }
 
-    // Group all notes by category first, then sort by time within each category
+    // --- PENGELOMPOKAN DATA ---
     const allNotes = [];
     notesFound.forEach(item => {
         item.items.forEach(note => {
@@ -541,27 +570,16 @@ function renderNotesList() {
         });
     });
 
-    // Group by category
-    const grouped = {
-        penting: [],
-        kerja: [],
-        pribadi: [],
-        ide: []
-    };
-
+    const grouped = { penting: [], kerja: [], pribadi: [], ide: [] };
     allNotes.forEach(note => {
         const cat = note.category || 'pribadi';
         if (grouped[cat]) grouped[cat].push(note);
     });
 
-    // Sort each group by Date first, then Time (earliest first, no-time last)
+    // Sort waktu
     Object.keys(grouped).forEach(cat => {
         grouped[cat].sort((a, b) => {
-            // 1. Sort by Date
-            if (a.date.getTime() !== b.date.getTime()) {
-                return a.date - b.date;
-            }
-            // 2. Sort by Time
+            if (a.date.getTime() !== b.date.getTime()) return a.date - b.date;
             if (a.time && !b.time) return -1;
             if (!a.time && b.time) return 1;
             if (a.time && b.time) return a.time.localeCompare(b.time);
@@ -569,58 +587,110 @@ function renderNotesList() {
         });
     });
 
-    // Render by category
+    // --- CONFIG WARNA PER KATEGORI (UPDATE UTAMA DI SINI) ---
+    // Kita definisikan warna spesifik untuk badge & border
     const categoryConfig = {
-        penting: { label: 'Penting', icon: 'fa-exclamation-circle', color: 'red', borderColor: 'border-red-400', bgColor: 'bg-red-50', textColor: 'text-red-600' },
-        kerja: { label: 'Kerja', icon: 'fa-briefcase', color: 'blue', borderColor: 'border-blue-400', bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
-        pribadi: { label: 'Pribadi', icon: 'fa-sticky-note', color: 'emerald', borderColor: 'border-emerald-400', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
-        ide: { label: 'Ide', icon: 'fa-lightbulb', color: 'amber', borderColor: 'border-amber-400', bgColor: 'bg-amber-50', textColor: 'text-amber-600' }
+        penting: { 
+            label: 'Penting', 
+            icon: 'fa-exclamation-circle', 
+            // Warna Header
+            headerColor: 'text-red-600',
+            // Warna Item Catatan (Badge & Border)
+            badgeBg: 'bg-red-100', 
+            badgeText: 'text-red-600', 
+            borderColor: 'border-red-500', 
+            checkColor: 'text-red-500'
+        },
+        kerja: { 
+            label: 'Kerja', 
+            icon: 'fa-briefcase', 
+            headerColor: 'text-blue-600',
+            badgeBg: 'bg-blue-100', 
+            badgeText: 'text-blue-600', 
+            borderColor: 'border-blue-500', 
+            checkColor: 'text-blue-500'
+        },
+        pribadi: { 
+            label: 'Pribadi', 
+            icon: 'fa-sticky-note', 
+            headerColor: 'text-emerald-600',
+            badgeBg: 'bg-emerald-100', 
+            badgeText: 'text-emerald-600', 
+            borderColor: 'border-emerald-500', 
+            checkColor: 'text-emerald-500'
+        },
+        ide: { 
+            label: 'Ide', 
+            icon: 'fa-lightbulb', 
+            headerColor: 'text-amber-600',
+            badgeBg: 'bg-amber-100', 
+            badgeText: 'text-amber-600', 
+            borderColor: 'border-amber-500', 
+            checkColor: 'text-amber-500'
+        }
     };
 
+    // --- RENDERING LOOP ---
     ['penting', 'kerja', 'pribadi', 'ide'].forEach(cat => {
         if (grouped[cat].length === 0) return;
 
         const config = categoryConfig[cat];
+
+        // 1. HEADER KATEGORI (Tanpa Kotak Background, Font Lebih Besar)
         const categoryHeader = document.createElement('div');
-        categoryHeader.className = `mb-3 mt-4 first:mt-0`;
+        categoryHeader.className = `mb-2 mt-6 first:mt-0 px-2`; // px-2 agar sejajar visual
         categoryHeader.innerHTML = `
-                    <div class="flex items-center gap-2 mb-2">
-                        <i class="fas ${config.icon} ${config.textColor}"></i>
-                        <span class="text-xs font-bold ${config.textColor} uppercase tracking-wider">${config.label}</span>
-                        <span class="text-[0.6rem] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">${grouped[cat].length}</span>
-                    </div>
-                `;
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fas ${config.icon} ${config.headerColor} text-lg"></i>
+                    <span class="text-base font-black ${config.headerColor} uppercase tracking-wider">${config.label}</span>
+                </div>
+                <span class="text-[0.65rem] font-black bg-white ${config.headerColor} px-2 py-0.5 rounded-full shadow-sm border border-slate-100">${grouped[cat].length}</span>
+            </div>
+        `;
         container.appendChild(categoryHeader);
+
+        // 2. CONTAINER LIST CATATAN (Dengan Indentasi)
+        const listWrapper = document.createElement('div');
+        listWrapper.className = "pl-4 space-y-3"; // pl-4 memberikan indentasi ke kanan
 
         grouped[cat].forEach(note => {
             const el = document.createElement('div');
-            el.className = `bg-white p-3 rounded-xl shadow-sm border-l-4 ${config.borderColor} mb-2 hover:bg-slate-50 transition`;
+            
+            // Perhatikan penggunaan variable config (borderColor) agar warna garis kiri sesuai kategori
+            el.className = `bg-white p-3 rounded-xl shadow-sm border-l-4 ${config.borderColor} hover:bg-slate-50 transition relative overflow-hidden group`;
 
             const isDone = note.isCompleted;
+            
+            // Badge Waktu juga mengikuti nuansa warna kategori (opsional, atau tetap slate)
+            // Di sini saya buat netral (slate) agar tidak terlalu ramai, tapi ikon check mengikuti kategori.
             const timeBadge = note.time ? `<span class="text-[0.6rem] font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded"><i class="far fa-clock mr-1"></i>${note.time}</span>` : '';
 
             el.innerHTML = `
-                        <div class="flex items-start gap-2">
-                            <div class="mt-0.5 cursor-pointer" onclick="event.stopPropagation(); toggleNoteStatusInList('${note.dateKey}', '${note.id}')">
-                                <i class="fas ${isDone ? 'fa-check-circle text-emerald-500' : 'fa-circle text-slate-300'} text-base"></i>
-                            </div>
-                            <div class="flex-1 ${isDone ? 'opacity-50 line-through decoration-slate-400' : ''}">
-                                <p class="text-sm font-medium text-slate-700 leading-snug mb-1">${note.text}</p>
-                                <div class="flex items-center gap-2 text-[0.6rem] text-slate-400">
-                                    <span>${note.dayName}, ${note.dateStr}</span>
-                                    ${timeBadge}
-                                </div>
-                            </div>
-                            <button onclick="event.stopPropagation(); deleteNoteFromList('${note.dateKey}', '${note.id}')" class="text-slate-300 hover:text-red-500 transition px-2">
-                                <i class="fas fa-trash-alt text-sm"></i>
-                            </button>
+                <div class="flex items-start gap-3">
+                    <div class="mt-0.5 cursor-pointer" onclick="event.stopPropagation(); toggleNoteStatusInList('${note.dateKey}', '${note.id}')">
+                        <i class="fas ${isDone ? `fa-check-circle ${config.checkColor}` : 'fa-circle text-slate-300'} text-lg transition-colors"></i>
+                    </div>
+                    
+                    <div class="flex-1 ${isDone ? 'opacity-50 line-through decoration-slate-400' : ''}">
+                        <p class="text-sm font-bold text-slate-700 leading-snug mb-1">${note.text}</p>
+                        <div class="flex items-center gap-2 text-[0.65rem] text-slate-400 font-medium">
+                            <span>${note.dayName}, ${note.dateStr}</span>
+                            ${timeBadge}
                         </div>
-                    `;
+                    </div>
+                    
+                    <button onclick="event.stopPropagation(); deleteNoteFromList('${note.dateKey}', '${note.id}')" class="text-slate-300 hover:text-red-500 transition px-2 opacity-0 group-hover:opacity-100">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
 
             el.setAttribute('onclick', `openEditNoteModal('${note.dateKey}', '${note.id}')`);
-
-            container.appendChild(el);
+            listWrapper.appendChild(el);
         });
+
+        container.appendChild(listWrapper);
     });
 }
 

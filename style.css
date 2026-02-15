@@ -2246,3 +2246,76 @@ body.dark-mode details.note-item .flex.items-center:hover {
     background-color: rgba(255, 255, 255, 0.05); /* Highlight tipis saat hover sub-item */
     border-radius: 4px;
 }
+
+/* === PERBAIKAN COUNTER KATEGORI (DARK MODE) === */
+
+/* Pastikan background badge kategori selalu PUTIH di mode gelap agar kontras */
+body.dark-mode .notes-view-container .rounded-full.bg-white {
+    background-color: #ffffff !important;
+    border-color: transparent !important;
+}
+
+/* Paksa warna angka mengikuti warna aslinya (Jangan diubah jadi putih/abu) */
+/* Kita target spesifik di dalam notes-view-container agar tidak merusak bagian lain */
+
+/* Pribadi (Hijau) */
+body.dark-mode .notes-view-container .rounded-full.text-emerald-600 { 
+    color: #059669 !important; /* Emerald 600 */
+}
+
+/* Kerja (Biru) */
+body.dark-mode .notes-view-container .rounded-full.text-blue-600 { 
+    color: #2563eb !important; /* Blue 600 */
+}
+
+/* Penting (Merah) */
+body.dark-mode .notes-view-container .rounded-full.text-red-600 { 
+    color: #dc2626 !important; /* Red 600 */
+}
+
+/* Ide (Amber/Kuning) */
+body.dark-mode .notes-view-container .rounded-full.text-amber-600 { 
+    color: #d97706 !important; /* Amber 600 */
+}
+
+/* === FAB EXPANDABLE PILL === */
+
+.fab-expandable {
+    background: var(--premium-gradient); /* Tetap pakai gradien premium */
+    height: 48px; /* Tinggi tetap */
+    padding: 0 6px 0 6px; /* Padding kiri-kanan */
+    border-radius: 99px; /* Bentuk kapsul penuh */
+    min-width: 48px; /* Agar saat mengecil jadi bulat sempurna */
+    
+    /* Transisi untuk lebar dan padding */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fab-text {
+    max-width: 150px; /* Lebar maksimal teks */
+    opacity: 1;
+    transition: all 0.3s ease; /* Transisi menghilang */
+    margin-left: 4px;
+}
+
+/* --- STATE: SHRINK (MENGECIL) --- */
+/* Class ini akan ditambahkan via JS saat scroll ke bawah */
+.fab-expandable.shrink {
+    padding: 0; /* Hapus padding agar ikon pas di tengah */
+    width: 48px; /* Paksa lebar jadi kotak (bulat karena radius) */
+}
+
+.fab-expandable.shrink .fab-text {
+    max-width: 0; /* Hilangkan lebar teks */
+    opacity: 0;   /* Hilangkan transparansi */
+    margin: 0;    /* Hapus margin */
+    padding: 0;
+}
+
+/* Animasi Kilau saat disentuh (opsional) */
+@keyframes shimmer {
+    100% { transform: translateX(100%); }
+}
+.group-hover\:animate-shimmer:hover {
+    animation: shimmer 1.5s infinite;
+}
