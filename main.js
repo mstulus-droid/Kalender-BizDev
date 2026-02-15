@@ -1456,6 +1456,7 @@ function changeMonth(dir, targetDate = null) {
 }
 
 function openSettings() {
+    // ... (kode awal overlay, body, title tetap sama) ...
     const overlay = document.getElementById('selectorModal');
     const body = document.getElementById('modalBody');
     const title = document.getElementById('modalTitle');
@@ -1466,43 +1467,41 @@ function openSettings() {
     title.textContent = "PENGATURAN";
     body.className = "p-4 space-y-4 w-full"; 
 
-    // --- 0. CEK STATUS NOTIFIKASI (TETAP SAMA) ---
-    let notifStatus = 'Belum Diizinkan';
-    let notifColor = 'text-slate-500';
-    let btnText = 'AKTIFKAN NOTIFIKASI';
-    let btnClass = 'bg-blue-100 text-blue-600';
-    let notifDesc = 'Diperlukan agar alarm jadwal berbunyi.';
+    // --- 1. LOGIKA STATUS NOTIFIKASI ---
+    let isNotifOn = false;
+    let notifLabel = "Belum Aktif";
+    let notifSub = "Ketuk untuk mengaktifkan";
+    let toggleClass = ""; // Kosong = OFF
+    let iconClass = "fa-bell-slash"; // Ikon coret
 
     if (!('Notification' in window)) {
-        notifStatus = 'Tidak Didukung';
-        btnText = 'BROWSER TIDAK SUPPORT';
-        btnClass = 'bg-gray-100 text-gray-400 cursor-not-allowed';
-    } else {
-        if (Notification.permission === 'granted') {
-            notifStatus = 'Sudah Aktif ✅';
-            notifColor = 'text-green-600';
-            btnText = 'TES NOTIFIKASI (BUNYI)';
-            btnClass = 'bg-green-100 text-green-700 hover:bg-green-200';
-            notifDesc = 'Pastikan tab ini tetap terbuka (boleh minimize).';
-        } else if (Notification.permission === 'denied') {
-            notifStatus = 'Diblokir Browser ❌';
-            notifColor = 'text-red-500';
-            btnText = 'LIHAT CARA BUKA BLOKIR';
-            btnClass = 'bg-red-100 text-red-600 hover:bg-red-200';
-            notifDesc = 'Anda harus mengizinkan lewat ikon gembok URL.';
-        }
+        notifLabel = "Tidak Support";
+        notifSub = "Browser tidak mendukung";
+    } else if (Notification.permission === 'granted') {
+        isNotifOn = true;
+        notifLabel = "Sudah Aktif";
+        notifSub = "Ketuk untuk tes bunyi";
+        toggleClass = "notif-active"; // Class CSS untuk warna Hijau
+        iconClass = "fa-bell"; // Ikon lonceng
+    } else if (Notification.permission === 'denied') {
+        notifLabel = "Diblokir";
+        notifSub = "Izinkan lewat pengaturan browser";
     }
 
+    // --- 2. HTML BARU: DESAIN SEPERTI MODE TAMPILAN ---
     const notifSectionHTML = `
-        <div class="p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <div class="flex justify-between items-center mb-1">
-                <span class="font-bold text-sm text-slate-700"><i class="fas fa-bell mr-2 text-slate-400"></i>Alarm</span>
-                <span class="text-[0.65rem] font-bold uppercase tracking-wider ${notifColor}">${notifStatus}</span>
+        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer ${toggleClass}" onclick="handleNotificationClick()">
+            <div class="flex flex-col">
+                <span class="font-bold text-sm text-slate-700">Notifikasi</span>
+                <span class="text-[0.65rem] text-slate-400 font-bold uppercase tracking-wider">${notifLabel}</span>
+                <span class="text-[0.6rem] text-slate-400 italic mt-0.5 leading-none">${notifSub}</span>
             </div>
-            <p class="text-[0.7rem] text-slate-500 mb-3 leading-snug">${notifDesc}</p>
-            <button onclick="handleNotificationClick()" class="w-full py-2 rounded-lg text-xs font-bold ${btnClass} transition">
-                ${btnText}
-            </button>
+            
+            <div class="notif-toggle-pill">
+                <div class="notif-toggle-circle">
+                    <i class="fas ${iconClass} notif-toggle-icon"></i>
+                </div>
+            </div>
         </div>
     `;
 
@@ -1631,6 +1630,51 @@ function openSettings() {
 
     body.innerHTML = finalHTML;
     openModal('pos-center');
+}
+
+function handleNotificationClick() {
+    // 1. Cek Dukungan Browser
+    if (!('Notification' in window)) {
+        alert("Maaf, browser ini tidak mendukung notifikasi.");
+        return;
+    }
+
+    // 2. Jika Sudah Aktif (Granted) -> Kirim Tes Notifikasi
+    if (Notification.permission === 'granted') {
+        // Kita tidak bisa 'mematikan' izin via koding (kebijakan keamanan browser),
+        // jadi kita gunakan tombol ini untuk tes fungsi.
+        try {
+            const notif = new Notification("Halo dari BizDev Cal!", {
+                body: "Sistem notifikasi berjalan normal.",
+                icon: "icons/icon_192.webp" // Pastikan path icon benar
+            });
+            
+            // Opsional: Mainkan suara kecil jika ada file audio
+            // const audio = new Audio('notification.mp3'); audio.play();
+        } catch (e) {
+            alert("Notifikasi aktif tapi gagal muncul (Cek mode hening HP).");
+        }
+    } 
+    
+    // 3. Jika Diblokir (Denied) -> Beri Petunjuk Manual
+    else if (Notification.permission === 'denied') {
+        alert("Notifikasi telah diblokir.\n\nUntuk mengaktifkan kembali:\n1. Ketuk ikon gembok 🔒 di samping URL.\n2. Pilih 'Permissions' / 'Izin'.\n3. Ubah Notifikasi menjadi 'Allow' / 'Izinkan'.");
+    } 
+    
+    // 4. Jika Belum Ada Izin (Default) -> Minta Izin
+    else {
+        Notification.requestPermission().then(permission => {
+            // Apa pun hasilnya, refresh tampilan settings agar switch berubah warna
+            openSettings();
+
+            if (permission === 'granted') {
+                new Notification("Notifikasi Diaktifkan", {
+                    body: "Terima kasih! Anda akan menerima pengingat jadwal.",
+                    icon: "icons/icon_192.webp"
+                });
+            }
+        });
+    }
 }
 
 // --- UPDATE FUNGSI TOGGLE SETTING ---

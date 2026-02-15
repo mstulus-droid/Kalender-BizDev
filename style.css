@@ -2104,3 +2104,69 @@
 .animate-bounce-subtle {
     animation: slideUpFade 0.5s ease-out forwards, bounceSubtle 2s infinite 1s;
 }
+
+/* === STYLE TAMBAHAN UNTUK SWITCH NOTIFIKASI === */
+
+/* Status OFF (Default) */
+.notif-toggle-pill {
+    position: relative;
+    width: 56px;
+    height: 28px;
+    background: #cbd5e1; /* Abu-abu (Mati) */
+    border-radius: 50px;
+    transition: all 0.4s ease;
+    padding: 3px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+}
+
+/* Lingkaran Toggle */
+.notif-toggle-circle {
+    width: 22px;
+    height: 22px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    left: 3px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+/* Ikon Lonceng */
+.notif-toggle-icon {
+    font-size: 0.7rem;
+    color: #94a3b8; /* Abu-abu */
+    transition: all 0.3s;
+}
+
+/* Status ON (Aktif/Granted) */
+.notif-active .notif-toggle-pill {
+    background: #10b981; /* Hijau Emerald */
+}
+
+.notif-active .notif-toggle-circle {
+    left: calc(100% - 25px); /* Geser Kanan */
+    background: white;
+}
+
+.notif-active .notif-toggle-icon {
+    color: #10b981; /* Ikon Hijau */
+}
+
+/* Efek Getar Lonceng saat Aktif */
+@keyframes bell-ring {
+    0%, 100% { transform: rotate(0); }
+    10% { transform: rotate(15deg); }
+    30% { transform: rotate(-15deg); }
+    50% { transform: rotate(10deg); }
+    70% { transform: rotate(-10deg); }
+}
+
+.notif-active:hover .notif-toggle-icon {
+    animation: bell-ring 0.8s ease-in-out;
+}
