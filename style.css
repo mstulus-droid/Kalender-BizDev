@@ -2170,3 +2170,79 @@
 .notif-active:hover .notif-toggle-icon {
     animation: bell-ring 0.8s ease-in-out;
 }
+
+/* === PERBAIKAN KONTRAS AGENDA (DARK MODE) === */
+
+/* 1. Ubah Judul Libur/Cuti (Merah) jadi Putih */
+body.dark-mode .holiday-item .text-red-600,
+body.dark-mode .holiday-item .text-red-500 {
+    color: #f1f5f9 !important; /* Putih Terang */
+}
+
+/* 2. Ubah Judul Peringatan (Biru) jadi Putih */
+body.dark-mode .observance-item .text-blue-600,
+body.dark-mode .observance-item .text-blue-500 {
+    color: #f1f5f9 !important; /* Putih Terang */
+}
+
+/* 3. Ubah Tanggal (misal: "17 AGU") yang tadinya Hitam jadi Abu Terang */
+/* Ini penting agar tanggalnya juga terbaca di background gelap */
+body.dark-mode .holiday-item .text-slate-800,
+body.dark-mode .observance-item .text-slate-800,
+body.dark-mode .birthday-item .text-amber-800,     /* Ultah */
+body.dark-mode .anniversary-item .text-pink-800,   /* Anniversary */
+body.dark-mode .note-item .text-slate-800 {
+    color: #cbd5e1 !important; /* Abu Terang */
+}
+
+/* 4. Opsional: Perbaiki warna deskripsi kecil di Ultah & Anniversary */
+body.dark-mode .birthday-item .text-amber-600,
+body.dark-mode .anniversary-item .text-pink-600 {
+    color: #fcd34d !important; /* Kuning Emas Terang */
+}
+
+/* === PERBAIKAN KHUSUS ITEM CATATAN (DARK MODE) === */
+
+/* 1. Judul Catatan & Ikon: Ubah Hijau Gelap jadi Putih/Terang */
+body.dark-mode .note-item .text-emerald-700,
+body.dark-mode .note-item .text-emerald-600,
+body.dark-mode .note-item .text-emerald-500,
+body.dark-mode .note-item .fa-sticky-note {
+    color: #f1f5f9 !important; /* Putih Terang */
+}
+
+/* 2. Badge Counter (Contoh: "3 Catatan"): Invert Warna */
+/* Background jadi Putih, Teks jadi Hitam/Slate-900 */
+body.dark-mode .note-item .bg-emerald-100 {
+    background-color: #f8fafc !important; /* Putih */
+    color: #0f172a !important; /* Teks Gelap */
+}
+
+/* 3. Detail Expand (Saat diklik): Hapus Background & Border */
+body.dark-mode details.note-item[open] .bg-white\/50,
+body.dark-mode details.note-item[open] .bg-emerald-50 {
+    background-color: transparent !important; /* Hapus background abu/hijau */
+    border-color: rgba(255, 255, 255, 0.1) !important; /* Border pemisah tipis */
+}
+
+/* 4. Sub-List Catatan (Isi detail): Teks & Jam jadi Putih */
+body.dark-mode .note-item .text-slate-600, /* Teks Catatan */
+body.dark-mode .note-item .text-slate-400  /* Jam */ {
+    color: #cbd5e1 !important; /* Abu Terang */
+}
+
+/* 5. Garis Pemisah Antar Sub-Note */
+body.dark-mode .note-item .border-slate-100 {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 6. Tombol "Lihat Detail" di bawah */
+body.dark-mode .note-item button.text-emerald-600 {
+    color: #60a5fa !important; /* Ubah jadi Biru Muda biar beda dikit */
+}
+
+/* 7. Hover Effect pada Sub-Note (Opsional biar interaktif) */
+body.dark-mode details.note-item .flex.items-center:hover {
+    background-color: rgba(255, 255, 255, 0.05); /* Highlight tipis saat hover sub-item */
+    border-radius: 4px;
+}
