@@ -2778,3 +2778,68 @@ function updateDesktopSidebarUI() {
         }
     }
 }
+
+// --- LOGIKA LOGIN GOOGLE (Vibe Coding) ---
+
+// 1. Fungsi saat tombol diklik (Saklar Login/Logout)
+async function toggleGoogleAuth() {
+    const { auth, provider, signInWithPopup, signOut } = window.fbAuth;
+    
+    // Cek apakah user sedang login atau tidak
+    if (!auth.currentUser) {
+        // --- MAU LOGIN ---
+        try {
+            const result = await signInWithPopup(auth, provider);
+            // Sukses! onAuthStateChanged di bawah akan otomatis menangani tampilan
+            console.log("Login sukses:", result.user.displayName);
+        } catch (error) {
+            console.error("Login gagal:", error);
+            alert("Gagal Login: " + error.message);
+        }
+    } else {
+        // --- MAU LOGOUT ---
+        if (confirm("Yakin ingin logout dari akun Google?")) {
+            try {
+                await signOut(auth);
+                console.log("Logout sukses");
+                // Sukses! Tampilan akan berubah otomatis
+            } catch (error) {
+                console.error("Logout gagal:", error);
+            }
+        }
+    }
+}
+
+// 2. Mata-Mata Status Login (Otomatis jalan saat refresh)
+window.fbAuth.onAuthStateChanged(window.fbAuth.auth, (user) => {
+    const btn = document.getElementById('btnLoginGoogle');
+    const txt = document.getElementById('btnTextGoogle');
+    const icon = btn.querySelector('i');
+
+    if (user) {
+        // === USER SEDANG LOGIN ===
+        // Ubah tombol jadi merah (Logout) & Tampilkan nama
+        const namaDepan = user.displayName.split(' ')[0]; // Ambil nama depan saja
+        txt.textContent = `LOGOUT (${namaDepan})`;
+        
+        btn.classList.remove('bg-white', 'text-slate-900');
+        btn.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700'); // Jadi merah
+        
+        icon.className = "fas fa-sign-out-alt"; // Ikon pintu keluar
+        icon.classList.remove('text-red-500');  // Hapus warna merah ikon lama
+        icon.classList.add('text-white');       // Ikon jadi putih
+
+        // TODO: Di sini nanti kita panggil fungsi Sync Data
+        // syncNotesFromFirebase(user.uid); 
+
+    } else {
+        // === USER TIDAK LOGIN (TAMU) ===
+        // Reset tombol jadi putih (Login Google)
+        txt.textContent = "LOGIN GOOGLE";
+        
+        btn.classList.add('bg-white', 'text-slate-900');
+        btn.classList.remove('bg-red-600', 'text-white', 'hover:bg-red-700');
+        
+        icon.className = "fab fa-google text-red-500 group-hover:scale-110 transition-transform";
+    }
+});
