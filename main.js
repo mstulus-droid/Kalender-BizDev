@@ -2857,36 +2857,65 @@ async function toggleGoogleAuth() {
     }
 }
 
-// 2. Mata-Mata Status Login (Otomatis jalan saat refresh)
-window.fbAuth.onAuthStateChanged(window.fbAuth.auth, (user) => {
-    const btn = document.getElementById('btnLoginGoogle');
-    const txt = document.getElementById('btnTextGoogle');
-    const icon = btn.querySelector('i');
+// --- 2. Mata-Mata Status Login (Versi Aman) ---
+// Kita gunakan Interval untuk mengecek apakah Firebase sudah siap
+const initAuthListener = setInterval(() => {
+    if (window.fbAuth) {
+        // Hore! Firebase sudah siap, matikan pengecekan berulang
+        clearInterval(initAuthListener);
 
-    if (user) {
-        // === USER SEDANG LOGIN ===
-        // Ubah tombol jadi merah (Logout) & Tampilkan nama
-        const namaDepan = user.displayName.split(' ')[0]; // Ambil nama depan saja
-        txt.textContent = `LOGOUT (${namaDepan})`;
-        
-        btn.classList.remove('bg-white', 'text-slate-900');
-        btn.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700'); // Jadi merah
-        
-        icon.className = "fas fa-sign-out-alt"; // Ikon pintu keluar
-        icon.classList.remove('text-red-500');  // Hapus warna merah ikon lama
-        icon.classList.add('text-white');       // Ikon jadi putih
+        // Jalankan Listener seperti biasa
+        window.fbAuth.onAuthStateChanged(window.fbAuth.auth, (user) => {
+            const btn = document.getElementById('btnLoginGoogle');
+            const mobileBtn = document.getElementById('mobileLoginBtn'); // Tombol di menu settings
+            
+            // Helper update UI (agar kode tidak berulang)
+            const updateUI = (text, colorAdd, colorRemove, iconClass) => {
+                // Update Desktop Button
+                if(btn) {
+                    const txt = document.getElementById('btnTextGoogle');
+                    const icon = btn.querySelector('i');
+                    if(txt) txt.textContent = text;
+                    if(icon) icon.className = iconClass;
+                    btn.classList.remove(...colorRemove.split(' '));
+                    btn.classList.add(...colorAdd.split(' '));
+                }
+                // Update Mobile Button (Jika sedang terbuka)
+                if(mobileBtn) {
+                    const span = mobileBtn.querySelector('span');
+                    const icon = mobileBtn.querySelector('i');
+                    if(span) span.textContent = text;
+                    if(icon) icon.className = iconClass;
+                    mobileBtn.className = `w-full ${colorAdd} p-3 rounded-xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 transition active:scale-95`;
+                }
+            };
 
-        // TODO: Di sini nanti kita panggil fungsi Sync Data
-        // syncNotesFromFirebase(user.uid); 
-
-    } else {
-        // === USER TIDAK LOGIN (TAMU) ===
-        // Reset tombol jadi putih (Login Google)
-        txt.textContent = "LOGIN GOOGLE";
+            if (user) {
+                // === LOGIN SUKSES ===
+                currentUser = user;
+                console.log("User Aktif:", user.displayName);
+                const nama = user.displayName.split(' ')[0];
+                updateUI(
+                    `LOGOUT (${nama})`, 
+                    "bg-red-600 text-white hover:bg-red-700", 
+                    "bg-white text-slate-900", 
+                    "fas fa-sign-out-alt"
+                );
+                
+                // Panggil sync data nanti di sini
+            } else {
+                // === BELUM LOGIN ===
+                currentUser = null;
+                console.log("User Guest");
+                updateUI(
+                    "LOGIN GOOGLE", 
+                    "bg-white text-slate-900", 
+                    "bg-red-600 text-white hover:bg-red-700", 
+                    "fab fa-google text-red-500 group-hover:scale-110 transition-transform"
+                );
+            }
+        });
         
-        btn.classList.add('bg-white', 'text-slate-900');
-        btn.classList.remove('bg-red-600', 'text-white', 'hover:bg-red-700');
-        
-        icon.className = "fab fa-google text-red-500 group-hover:scale-110 transition-transform";
+        console.log("Listener Auth Berhasil Dipasang!");
     }
-});
+}, 500); // Cek setiap 0.5 detik
