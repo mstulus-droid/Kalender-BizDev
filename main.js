@@ -2706,45 +2706,56 @@ function closeIosModal() {
 
 // --- FUNGSI UPDATE UI SIDEBAR DESKTOP ---
 function updateDesktopSidebarUI() {
-    // 1. Update Tombol Install
     const installContainer = document.getElementById('desktopInstallContainer');
-    if (installContainer) {
-        // Tampilkan hanya jika: Ada tiket install (deferredPrompt) DAN belum terinstall (standalone)
-        if (deferredPrompt && !isStandalone) {
-            installContainer.classList.remove('hidden');
-        } else {
-            installContainer.classList.add('hidden');
-        }
+    if (!installContainer) return;
+
+    // 1. Logika Deteksi Status Instalasi
+    // isStandalone sudah kita definisikan di bagian atas main.js
+    if (isStandalone) {
+        // TAMPILAN JIKA SUDAH TERPASANG (Persis mobile)
+        installContainer.classList.remove('hidden');
+        installContainer.innerHTML = `
+            <p class="text-xs font-bold opacity-50 uppercase tracking-widest mb-1">Aplikasi</p>
+            <div class="bg-emerald-500/20 border border-emerald-500/30 rounded-xl p-3 flex items-center gap-3">
+                <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-sm flex-shrink-0">
+                    <i class="fas fa-check text-xs"></i>
+                </div>
+                <div class="flex flex-col overflow-hidden">
+                    <span class="font-bold text-[0.7rem] text-emerald-200">Aplikasi Terpasang</span>
+                    <span class="text-[0.55rem] text-emerald-300/80 uppercase tracking-tighter">Versi PWA Aktif</span>
+                </div>
+            </div>`;
+    } else if (deferredPrompt) {
+        // TAMPILAN TOMBOL INSTALL (Hanya jika belum install & browser siap)
+        installContainer.classList.remove('hidden');
+        installContainer.innerHTML = `
+            <p class="text-xs font-bold opacity-50 uppercase tracking-widest mb-1">Aplikasi</p>
+            <button onclick="triggerInstallFromSettings()" class="w-full bg-white text-slate-900 hover:bg-slate-100 transition p-3 rounded-xl flex items-center justify-center gap-2 font-bold text-[0.7rem] shadow-lg group">
+                <i class="fas fa-download group-hover:scale-110 transition-transform"></i> INSTALL APP
+            </button>`;
+    } else {
+        // SEMBUNYIKAN jika tidak support atau sedang di browser biasa tanpa prompt
+        installContainer.classList.add('hidden');
     }
 
-    // 2. Update Status Notifikasi
+    // 2. Update Status Notifikasi (Tetap seperti sebelumnya)
     const statusEl = document.getElementById('desktopNotifStatus');
     const btnEl = document.getElementById('desktopNotifBtn');
     
-    if (!statusEl || !btnEl) return;
-
-    if (!('Notification' in window)) {
-        statusEl.textContent = "Tidak Support";
-        statusEl.className = "text-[0.6rem] font-bold uppercase tracking-wider text-slate-400";
-        btnEl.textContent = "BROWSER UNSUPPORTED";
-        btnEl.classList.add('opacity-50', 'cursor-not-allowed');
-    } else if (Notification.permission === 'granted') {
-        statusEl.textContent = "AKTIF ✅";
-        statusEl.className = "text-[0.6rem] font-bold uppercase tracking-wider text-emerald-300"; // Hijau terang
-        
-        btnEl.textContent = "TES BUNYI ALARM";
-        btnEl.className = "w-full py-2 rounded-lg text-[0.7rem] font-bold bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30 transition";
-    } else if (Notification.permission === 'denied') {
-        statusEl.textContent = "DIBLOKIR ❌";
-        statusEl.className = "text-[0.6rem] font-bold uppercase tracking-wider text-red-300"; // Merah terang
-        
-        btnEl.textContent = "CARA BUKA BLOKIR";
-        btnEl.className = "w-full py-2 rounded-lg text-[0.7rem] font-bold bg-red-500/20 text-red-200 border border-red-500/30 hover:bg-red-500/30 transition";
-    } else {
-        statusEl.textContent = "BELUM AKTIF";
-        statusEl.className = "text-[0.6rem] font-bold uppercase tracking-wider opacity-70";
-        
-        btnEl.textContent = "AKTIFKAN SEKARANG";
-        btnEl.className = "w-full py-2 rounded-lg text-[0.7rem] font-bold bg-white/10 hover:bg-white/20 transition text-center border border-white/10";
+    if (statusEl && btnEl) {
+        if (Notification.permission === 'granted') {
+            statusEl.textContent = "AKTIF ✅";
+            statusEl.className = "text-[0.6rem] font-bold uppercase tracking-wider text-emerald-300";
+            btnEl.textContent = "TES BUNYI ALARM";
+            btnEl.className = "w-full py-2 rounded-lg text-[0.7rem] font-bold bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30 transition";
+        } else if (Notification.permission === 'denied') {
+            statusEl.textContent = "DIBLOKIR ❌";
+            statusEl.className = "text-[0.6rem] font-bold uppercase tracking-wider text-red-300";
+            btnEl.textContent = "CARA BUKA BLOKIR";
+            btnEl.className = "w-full py-2 rounded-lg text-[0.7rem] font-bold bg-red-500/20 text-red-200 border border-red-500/30 hover:bg-red-500/30 transition";
+        } else {
+            statusEl.textContent = "BELUM AKTIF";
+            btnEl.textContent = "AKTIFKAN SEKARANG";
+        }
     }
 }
