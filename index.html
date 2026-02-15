@@ -35,6 +35,27 @@
                     </div>
                 </div>
 
+                <div id="desktopInstallContainer" class="hidden space-y-2 mb-8 animate-fade-in">
+                    <p class="text-xs font-bold opacity-50 uppercase tracking-widest mb-1">Aplikasi</p>
+                    <button onclick="triggerInstallFromSettings()" class="w-full bg-white text-slate-900 hover:bg-slate-100 transition p-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg group">
+                        <i class="fas fa-download group-hover:scale-110 transition-transform"></i> INSTALL APP
+                    </button>
+                </div>
+
+                <div class="space-y-2 mb-8">
+                    <p class="text-xs font-bold opacity-50 uppercase tracking-widest mb-1">Alarm & Notifikasi</p>
+                    
+                    <div class="bg-white/5 rounded-xl p-3 border border-white/10">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold opacity-90"><i class="fas fa-bell mr-2"></i>Status</span>
+                            <span id="desktopNotifStatus" class="text-[0.6rem] font-bold uppercase tracking-wider opacity-70">Cek...</span>
+                        </div>
+                        <button onclick="handleNotificationClick()" id="desktopNotifBtn" class="w-full py-2 rounded-lg text-[0.7rem] font-bold bg-white/10 hover:bg-white/20 transition text-center border border-white/10">
+                            AKTIFKAN
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="space-y-4 mb-8">
                     <p class="text-xs font-bold opacity-50 uppercase tracking-widest mb-2">Tampilan</p>
 

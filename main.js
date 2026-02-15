@@ -89,6 +89,9 @@ function init() {
     setupKeyboardShortcuts();
     startAlarmSystem(); // <--- Panggil fungsi monitoring alarm
 
+    // TAMBAHKAN INI: Update tampilan sidebar saat load awal
+    updateDesktopSidebarUI();
+
     // 7. Timeout transisi
     setTimeout(() => {
         const transSelect = document.getElementById('transitionSelect');
@@ -409,13 +412,12 @@ function toggleNotesView(fromHistory = false) {
     const calendarContainer = document.getElementById('calendarViewContainer');
     const notesContainer = document.getElementById('notesViewContainer');
     const calHeader = document.getElementById('calendarHeaderCenter');
-    const notesHeader = document.getElementById('notesHeaderCenter');
+    const notesHeader = document.getElementById('notesHeaderCenter'); // Opsional jika ada header khusus notes
 
-    // Footer Icon Elements
+    // Footer Icon Elements (Mobile)
     const footerLeft = document.getElementById('footerLeftBtn');
-    const footerRight = document.getElementById('footerRightBtn');
     
-    // Desktop Button
+    // Desktop Button (Sidebar)
     const btnDesktop = document.getElementById('btnToggleViewDesktop');
 
     if (isNotesView) {
@@ -423,21 +425,25 @@ function toggleNotesView(fromHistory = false) {
         calendarContainer.classList.add('hidden');
         notesContainer.classList.remove('hidden');
         notesContainer.classList.add('active');
-        calHeader.classList.add('hidden');
-        notesHeader.classList.remove('hidden');
+        
+        // Sembunyikan Header Kalender
+        if (calHeader) calHeader.classList.add('hidden');
+        if (notesHeader) notesHeader.classList.remove('hidden');
 
-        // Update Icon Footer
+        // Update Icon Footer (Mobile): Jadi icon Home
         if(footerLeft) footerLeft.innerHTML = '<i class="fas fa-home text-white text-sm"></i>';
         
-        // Desktop Sidebar
+        // Update Tombol Desktop: Berubah jadi "Kalender" (Tombol Pulang)
         if (btnDesktop) {
             btnDesktop.innerHTML = '<i class="fas fa-calendar-alt"></i> Kalender';
-            btnDesktop.classList.add('bg-white/20');
+            btnDesktop.classList.add('bg-white/20'); // Highlight tombol
         }
 
+        // Render ulang list catatan
         currentNoteDate = new Date();
         renderNotesList();
 
+        // Push History
         if (!fromHistory && location.hash !== '#notes') {
             history.pushState({ view: 'notes' }, '', '#notes');
         }
@@ -447,21 +453,27 @@ function toggleNotesView(fromHistory = false) {
         calendarContainer.classList.remove('hidden');
         notesContainer.classList.remove('active');
         notesContainer.classList.add('hidden');
-        calHeader.classList.remove('hidden');
-        notesHeader.classList.add('hidden');
+        
+        // Munculkan Header Kalender
+        if (calHeader) calHeader.classList.remove('hidden');
+        if (notesHeader) notesHeader.classList.add('hidden');
 
-        // Reset Icon Footer
+        // Reset Icon Footer (Mobile): Jadi icon Buku
         if(footerLeft) footerLeft.innerHTML = '<i class="fas fa-book text-white text-sm"></i>';
         
-        // Reset Desktop Sidebar
+        // Reset Tombol Desktop: Berubah jadi "Catatanku" (Tombol Masuk)
         if (btnDesktop) {
             btnDesktop.innerHTML = '<i class="fas fa-book"></i> Catatanku';
-            btnDesktop.classList.remove('bg-white/20');
+            btnDesktop.classList.remove('bg-white/20'); // Hapus highlight
         }
 
+        // Handle History Back
         if (!fromHistory && location.hash === '#notes') {
             history.back();
         }
+
+        // Refresh kalender (penting jika ada perubahan data saat di mode notes)
+        renderCalendar();
     }
 }
 
@@ -1734,10 +1746,14 @@ function handleNotificationClick() {
     if (Notification.permission === 'granted') {
         showPersistentNotification();
     } else if (Notification.permission === 'denied') {
-        alert("Notifikasi diblokir. Mohon izinkan lewat pengaturan browser (ikon gembok).");
+        alert("...");
     } else {
         Notification.requestPermission().then(permission => {
-            openSettings(); // Refresh UI switch
+            openSettings(); // Refresh modal mobile
+            
+            // TAMBAHKAN INI: Refresh sidebar desktop
+            updateDesktopSidebarUI(); 
+
             if (permission === 'granted') {
                 showPersistentNotification();
             }
@@ -2644,6 +2660,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e; // Simpan event ke variabel global
     // Kita tidak memanggil UI apa-apa di sini (Silent)
+    // TAMBAHKAN INI: Update sidebar segera setelah browser siap install
+    updateDesktopSidebarUI();
 });
 
 // 2. Fungsi Eksekusi Install (Dipanggil dari Tombol Settings)
@@ -2683,5 +2701,50 @@ function closeIosModal() {
     if(iosModal) {
         iosModal.classList.remove('flex');
         iosModal.classList.add('hidden');
+    }
+}
+
+// --- FUNGSI UPDATE UI SIDEBAR DESKTOP ---
+function updateDesktopSidebarUI() {
+    // 1. Update Tombol Install
+    const installContainer = document.getElementById('desktopInstallContainer');
+    if (installContainer) {
+        // Tampilkan hanya jika: Ada tiket install (deferredPrompt) DAN belum terinstall (standalone)
+        if (deferredPrompt && !isStandalone) {
+            installContainer.classList.remove('hidden');
+        } else {
+            installContainer.classList.add('hidden');
+        }
+    }
+
+    // 2. Update Status Notifikasi
+    const statusEl = document.getElementById('desktopNotifStatus');
+    const btnEl = document.getElementById('desktopNotifBtn');
+    
+    if (!statusEl || !btnEl) return;
+
+    if (!('Notification' in window)) {
+        statusEl.textContent = "Tidak Support";
+        statusEl.className = "text-[0.6rem] font-bold uppercase tracking-wider text-slate-400";
+        btnEl.textContent = "BROWSER UNSUPPORTED";
+        btnEl.classList.add('opacity-50', 'cursor-not-allowed');
+    } else if (Notification.permission === 'granted') {
+        statusEl.textContent = "AKTIF ✅";
+        statusEl.className = "text-[0.6rem] font-bold uppercase tracking-wider text-emerald-300"; // Hijau terang
+        
+        btnEl.textContent = "TES BUNYI ALARM";
+        btnEl.className = "w-full py-2 rounded-lg text-[0.7rem] font-bold bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30 transition";
+    } else if (Notification.permission === 'denied') {
+        statusEl.textContent = "DIBLOKIR ❌";
+        statusEl.className = "text-[0.6rem] font-bold uppercase tracking-wider text-red-300"; // Merah terang
+        
+        btnEl.textContent = "CARA BUKA BLOKIR";
+        btnEl.className = "w-full py-2 rounded-lg text-[0.7rem] font-bold bg-red-500/20 text-red-200 border border-red-500/30 hover:bg-red-500/30 transition";
+    } else {
+        statusEl.textContent = "BELUM AKTIF";
+        statusEl.className = "text-[0.6rem] font-bold uppercase tracking-wider opacity-70";
+        
+        btnEl.textContent = "AKTIFKAN SEKARANG";
+        btnEl.className = "w-full py-2 rounded-lg text-[0.7rem] font-bold bg-white/10 hover:bg-white/20 transition text-center border border-white/10";
     }
 }
