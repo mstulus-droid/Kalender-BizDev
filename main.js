@@ -224,7 +224,9 @@ function addNote(dateKey, text, category = 'pribadi', time = '') {
     localStorage.setItem('rhadzCalNotes', JSON.stringify(notes));
     renderCalendar(); // Update dot indikator
     renderNotesList(); // Update global list jika sedang dibuka
+    saveToCloud();
     return notes[dateKey]; // Return updated list
+    
 }
 
 function deleteNote(dateKey, noteId) {
@@ -236,6 +238,7 @@ function deleteNote(dateKey, noteId) {
         localStorage.setItem('rhadzCalNotes', JSON.stringify(notes));
         renderCalendar();
         renderNotesList();
+        saveToCloud();
     }
     return notes[dateKey] || [];
 }
@@ -251,6 +254,7 @@ function editNote(dateKey, noteId, newText, newCategory, newTime) {
             localStorage.setItem('rhadzCalNotes', JSON.stringify(notes));
             renderCalendar();
             renderNotesList();
+            saveToCloud();
         }
     }
     return notes[dateKey] || [];
@@ -265,6 +269,7 @@ function toggleNoteStatus(dateKey, noteId) {
             localStorage.setItem('rhadzCalNotes', JSON.stringify(notes));
             renderCalendar();
             renderNotesList();
+            saveToCloud();
         }
     }
     return notes[dateKey] || [];
@@ -2895,14 +2900,22 @@ const initAuthListener = setInterval(() => {
                 currentUser = user;
                 console.log("User Aktif:", user.displayName);
                 const nama = user.displayName.split(' ')[0];
+                
+                // Update UI Tombol
                 updateUI(
                     `LOGOUT (${nama})`, 
                     "bg-red-600 text-white hover:bg-red-700", 
                     "bg-white text-slate-900", 
                     "fas fa-sign-out-alt"
                 );
+
+                // Tampilkan Container Status Sync (HTML Langkah 1)
+                const statusContainer = document.getElementById('syncStatusContainer');
+                if(statusContainer) statusContainer.classList.remove('hidden');
+
+                // 🔥 TARIK DATA DARI AWAN 🔥
+                loadFromCloud();
                 
-                // Panggil sync data nanti di sini
             } else {
                 // === BELUM LOGIN ===
                 currentUser = null;
@@ -2913,9 +2926,102 @@ const initAuthListener = setInterval(() => {
                     "bg-red-600 text-white hover:bg-red-700", 
                     "fab fa-google text-red-500 group-hover:scale-110 transition-transform"
                 );
+                const statusContainer = document.getElementById('syncStatusContainer');
+                if(statusContainer) statusContainer.classList.add('hidden');
             }
         });
         
         console.log("Listener Auth Berhasil Dipasang!");
     }
 }, 500); // Cek setiap 0.5 detik
+
+// ==========================================
+// 🔥 FITUR AUTO-SYNC FIREBASE (CLOUD) 🔥
+// ==========================================
+
+// 1. Fungsi: Simpan Data ke Awan (Upload)
+async function saveToCloud() {
+    // Hanya simpan jika user sedang Login
+    if (!currentUser) return; 
+
+    const statusEl = document.getElementById('syncStatusText');
+    const { db, doc, setDoc } = window.fbDB;
+    
+    // Ubah status jadi "Menyimpan..."
+    if(statusEl) {
+        statusEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> MENYIMPAN KE CLOUD...';
+        statusEl.className = "text-[0.65rem] font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest";
+    }
+
+    try {
+        const notesData = getStoredNotes(); // Ambil data dari LocalStorage
+        const settingsData = JSON.parse(localStorage.getItem('rhadzCalSettings')) || {};
+        
+        // Simpan ke Firestore: Collection 'users' -> Dokumen 'UID User'
+        await setDoc(doc(db, "users", currentUser.uid), {
+            notes: notesData,
+            settings: settingsData,
+            lastUpdated: new Date().toISOString()
+        });
+
+        // Ubah status jadi "Tersimpan"
+        setTimeout(() => {
+            if(statusEl) {
+                statusEl.innerHTML = '<i class="fas fa-check mr-1"></i> TERSIMPAN DI GOOGLE';
+                statusEl.className = "text-[0.65rem] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest";
+            }
+        }, 800);
+        console.log("Auto-save ke Firebase berhasil!");
+
+    } catch (error) {
+        console.error("Gagal simpan ke cloud:", error);
+        if(statusEl) statusEl.textContent = "❌ GAGAL SIMPAN (CEK KONEKSI)";
+    }
+}
+
+// 2. Fungsi: Ambil Data dari Awan (Download)
+async function loadFromCloud() {
+    if (!currentUser) return;
+
+    const { db, doc, getDoc } = window.fbDB;
+    const statusContainer = document.getElementById('syncStatusContainer');
+    
+    // Tampilkan indikator loading
+    if(statusContainer) statusContainer.classList.remove('hidden');
+
+    try {
+        console.log("Sedang mengunduh data dari Cloud...");
+        const docRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            
+            // TIMPA data lokal dengan data dari cloud
+            if (data.notes) {
+                localStorage.setItem('rhadzCalNotes', JSON.stringify(data.notes));
+            }
+            if (data.settings) {
+                // Opsional: Jika ingin sync setting juga
+                // localStorage.setItem('rhadzCalSettings', JSON.stringify(data.settings));
+                // Object.assign(settings, data.settings); 
+            }
+
+            console.log("Data berhasil ditarik dari Cloud!");
+            renderCalendar(); // Refresh Kalender
+            renderNotesList(); // Refresh List Catatan
+            
+            // Update UI status
+            const statusEl = document.getElementById('syncStatusText');
+            if(statusEl) {
+                statusEl.innerHTML = '<i class="fas fa-cloud mr-1"></i> DATA TERHUBUNG';
+                statusEl.className = "text-[0.65rem] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest";
+            }
+        } else {
+            console.log("User baru (belum ada data di cloud). Upload data lokal yg ada.");
+            saveToCloud(); // Upload data lokal saat ini sebagai data awal
+        }
+    } catch (error) {
+        console.error("Gagal ambil data:", error);
+    }
+}

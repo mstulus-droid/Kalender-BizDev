@@ -118,17 +118,11 @@
                     <i class="fab fa-google text-red-500 group-hover:scale-110 transition-transform"></i>
                     <span id="btnTextGoogle">LOGIN GOOGLE</span>
                 </button>
-                <div class="flex gap-2 mt-2">
-                    <button onclick="exportData()"
-                        class="flex-1 bg-white/10 hover:bg-white/20 transition p-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm text-white">
-                        <i class="fas fa-download"></i> Backup
-                    </button>
-
-                    <label
-                        class="flex-1 bg-white/10 hover:bg-white/20 transition p-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm text-white cursor-pointer">
-                        <i class="fas fa-upload"></i> Restore
-                        <input type="file" class="hidden" accept=".json" onchange="importData(this)">
-                    </label>
+                <div id="syncStatusContainer" class="mt-3 text-center hidden">
+                    <span id="syncStatusText" class="text-[0.65rem] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest">
+                        <i class="fas fa-cloud-upload-alt mr-1"></i> Menunggu Sinkronisasi...
+                    </span>
+                    <p class="text-[0.6rem] text-slate-400 mt-2 italic">Data kamu otomatis aman di akun Google.</p>
                 </div>
             </div>
 
