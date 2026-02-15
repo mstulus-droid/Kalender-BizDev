@@ -87,6 +87,7 @@ function init() {
     window.addEventListener('resize', renderCalendar);
 
     setupKeyboardShortcuts();
+    startAlarmSystem(); // <--- Panggil fungsi monitoring alarm
 
     // 7. Timeout transisi
     setTimeout(() => {
@@ -1632,46 +1633,47 @@ function openSettings() {
     openModal('pos-center');
 }
 
+// GANTI FUNGSI handleNotificationClick YANG LAMA DENGAN INI
+
 function handleNotificationClick() {
-    // 1. Cek Dukungan Browser
+    // 1. Cek Dukungan
     if (!('Notification' in window)) {
-        alert("Maaf, browser ini tidak mendukung notifikasi.");
+        alert("Browser tidak mendukung notifikasi.");
         return;
     }
 
-    // 2. Jika Sudah Aktif (Granted) -> Kirim Tes Notifikasi
-    if (Notification.permission === 'granted') {
-        // Kita tidak bisa 'mematikan' izin via koding (kebijakan keamanan browser),
-        // jadi kita gunakan tombol ini untuk tes fungsi.
-        try {
-            const notif = new Notification("Halo dari BizDev Cal!", {
-                body: "Sistem notifikasi berjalan normal.",
-                icon: "icons/icon_192.webp" // Pastikan path icon benar
-            });
+    // 2. Fungsi Helper untuk memicu Notifikasi via Service Worker (PENTING UNTUK MOBILE)
+    const showPersistentNotification = async () => {
+        if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
             
-            // Opsional: Mainkan suara kecil jika ada file audio
-            // const audio = new Audio('notification.mp3'); audio.play();
-        } catch (e) {
-            alert("Notifikasi aktif tapi gagal muncul (Cek mode hening HP).");
+            // Panggil notifikasi lewat Service Worker
+            reg.showNotification("Tes Notifikasi Berhasil! 🔔", {
+                body: "Sistem alarm Kalender BizDev sudah siap.",
+                icon: "icons/icon_192.webp",
+                badge: "icons/icon_192.webp",
+                vibrate: [200, 100, 200], // Getar: zrrrt.. zrrrt..
+                tag: 'test-notif' // Mencegah notifikasi numpuk
+            });
+        } else {
+            // Fallback untuk browser PC lama
+            new Notification("Tes Notifikasi Berhasil! 🔔", {
+                body: "Sistem alarm Kalender BizDev sudah siap.",
+                icon: "icons/icon_192.webp"
+            });
         }
-    } 
-    
-    // 3. Jika Diblokir (Denied) -> Beri Petunjuk Manual
-    else if (Notification.permission === 'denied') {
-        alert("Notifikasi telah diblokir.\n\nUntuk mengaktifkan kembali:\n1. Ketuk ikon gembok 🔒 di samping URL.\n2. Pilih 'Permissions' / 'Izin'.\n3. Ubah Notifikasi menjadi 'Allow' / 'Izinkan'.");
-    } 
-    
-    // 4. Jika Belum Ada Izin (Default) -> Minta Izin
-    else {
-        Notification.requestPermission().then(permission => {
-            // Apa pun hasilnya, refresh tampilan settings agar switch berubah warna
-            openSettings();
+    };
 
+    // 3. Logika Izin
+    if (Notification.permission === 'granted') {
+        showPersistentNotification();
+    } else if (Notification.permission === 'denied') {
+        alert("Notifikasi diblokir. Mohon izinkan lewat pengaturan browser (ikon gembok).");
+    } else {
+        Notification.requestPermission().then(permission => {
+            openSettings(); // Refresh UI switch
             if (permission === 'granted') {
-                new Notification("Notifikasi Diaktifkan", {
-                    body: "Terima kasih! Anda akan menerima pengingat jadwal.",
-                    icon: "icons/icon_192.webp"
-                });
+                showPersistentNotification();
             }
         });
     }
@@ -2415,6 +2417,81 @@ function changeYearByKeyboard(dir) {
     if (settings.transitionType !== 'none') {
         setTimeout(() => { settings.transitionType = originalTransition; }, 300);
     }
+}
+
+// --- SISTEM MONITORING ALARM (BARU) ---
+
+let processedAlarms = new Set(); // Menyimpan ID alarm yang sudah bunyi agar tidak spam
+
+function startAlarmSystem() {
+    // Cek setiap 30 detik
+    setInterval(() => {
+        checkAlarms();
+    }, 30000); 
+}
+
+function checkAlarms() {
+    // 1. Cek Izin Notifikasi dulu
+    if (Notification.permission !== 'granted') return;
+
+    // 2. Ambil Waktu Sekarang
+    const now = new Date();
+    const currentH = String(now.getHours()).padStart(2, '0');
+    const currentM = String(now.getMinutes()).padStart(2, '0');
+    const currentTimeStr = `${currentH}:${currentM}`; // Format "14:30"
+    
+    // 3. Ambil Tanggal Hari Ini (Format YYYY-M-D sesuai key penyimpanan kita)
+    // Note: getMonth() mulai dari 0, sedangkan key kita pakai 0-11 juga, tapi format tanggalnya d
+    const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+    
+    // 4. Ambil Data Catatan
+    const notes = getStoredNotes();
+    const todaysNotes = notes[todayKey];
+
+    if (!todaysNotes) return; // Tidak ada catatan hari ini
+
+    // 5. Loop Catatan Hari Ini
+    todaysNotes.forEach(note => {
+        // Jika catatan punya waktu DAN waktunya sama dengan sekarang
+        if (note.time && note.time === currentTimeStr) {
+            
+            // Generate ID unik untuk alarm ini (ID Note + Jam)
+            const alarmId = `${note.id}-${currentTimeStr}`;
+
+            // Cek apakah sudah pernah bunyi di sesi ini?
+            if (!processedAlarms.has(alarmId)) {
+                triggerAlarm(note);
+                processedAlarms.add(alarmId); // Tandai sudah bunyi
+
+                // Bersihkan memori processedAlarms agar tidak penuh (opsional, reset tiap jam)
+                setTimeout(() => processedAlarms.delete(alarmId), 60000 * 2); 
+            }
+        }
+    });
+}
+
+function triggerAlarm(note) {
+    // Mainkan Notifikasi Visual
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(reg => {
+            reg.showNotification(`🔔 Pengingat: ${note.text}`, {
+                body: `Waktunya untuk agenda kategori: ${note.category.toUpperCase()}`,
+                icon: "icons/icon_192.webp",
+                vibrate: [500, 200, 500, 200, 500], // Getar panjang
+                requireInteraction: true, // Notifikasi tidak hilang sampai diklik (Penting buat alarm)
+                data: { url: '#calendar' } // Data payload
+            });
+        });
+    } else {
+        new Notification(`🔔 Pengingat: ${note.text}`, {
+            body: `Waktunya untuk agenda kategori: ${note.category.toUpperCase()}`,
+            icon: "icons/icon_192.webp"
+        });
+    }
+
+    // OPSIONAL: Mainkan Suara (Hanya jalan jika user pernah interaksi dengan halaman)
+    // const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+    // audio.play().catch(e => console.log("Audio autoplay diblokir browser, hanya notifikasi yang muncul."));
 }
 
 // --- 1. INISIALISASI APLIKASI ---
