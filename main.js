@@ -2797,30 +2797,61 @@ function updateDesktopSidebarUI() {
 
 // --- LOGIKA LOGIN GOOGLE (Vibe Coding) ---
 
-// 1. Fungsi saat tombol diklik (Saklar Login/Logout)
+// Variable untuk mencegah klik ganda
+let isAuthProcessing = false;
+
 async function toggleGoogleAuth() {
+    // 1. Cek apakah sedang memproses? Kalau iya, berhenti.
+    if (isAuthProcessing) return;
+
     const { auth, provider, signInWithPopup, signOut } = window.fbAuth;
+    const btnDesktop = document.getElementById('btnLoginGoogle');
+    const btnMobile = document.getElementById('mobileLoginBtn'); // Tombol di menu settings (kalau ada)
     
-    // Cek apakah user sedang login atau tidak
+    // Helper untuk ubah teks tombol
+    const setBtnState = (text, disabled) => {
+        isAuthProcessing = disabled;
+        if (btnDesktop) {
+            btnDesktop.disabled = disabled;
+            const span = btnDesktop.querySelector('span');
+            if (span) span.textContent = text;
+            btnDesktop.style.opacity = disabled ? "0.5" : "1";
+        }
+        if (btnMobile) {
+            btnMobile.disabled = disabled;
+            const span = btnMobile.querySelector('span');
+            if (span) span.textContent = text;
+            btnMobile.style.opacity = disabled ? "0.5" : "1";
+        }
+    };
+
     if (!auth.currentUser) {
-        // --- MAU LOGIN ---
+        // === PROSES LOGIN ===
         try {
+            setBtnState("Membuka Google...", true); // Kunci tombol
             const result = await signInWithPopup(auth, provider);
-            // Sukses! onAuthStateChanged di bawah akan otomatis menangani tampilan
             console.log("Login sukses:", result.user.displayName);
+            // Tidak perlu setBtnState unlock di sini, karena onAuthStateChanged akan mereset tampilan
         } catch (error) {
             console.error("Login gagal:", error);
-            alert("Gagal Login: " + error.message);
+            
+            // Khusus error "cancelled", jangan kasih alert heboh, cukup log saja
+            if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
+                console.log("Login dibatalkan user.");
+            } else {
+                alert("Gagal Login: " + error.message);
+            }
+            setBtnState("LOGIN GOOGLE", false); // Buka kunci tombol jika gagal
         }
     } else {
-        // --- MAU LOGOUT ---
-        if (confirm("Yakin ingin logout dari akun Google?")) {
+        // === PROSES LOGOUT ===
+        if (confirm("Yakin ingin logout?")) {
             try {
+                setBtnState("Keluar...", true);
                 await signOut(auth);
-                console.log("Logout sukses");
-                // Sukses! Tampilan akan berubah otomatis
             } catch (error) {
-                console.error("Logout gagal:", error);
+                console.error("Logout error:", error);
+                setBtnState(`LOGOUT (${auth.currentUser.displayName.split(' ')[0]})`, false);
             }
         }
     }
